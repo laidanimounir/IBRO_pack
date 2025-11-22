@@ -138,7 +138,7 @@ export default function CustomerPage() {
               مرحباً بكم في متجرنا
             </h2>
             <p className="text-xl text-white/90 text-right">
-              أفضل أدوات المطبخ بأسعارv منافسة
+              أفضل أدوات المطبخ بأسعار منافسة
             </p>
           </div>
         </div>
