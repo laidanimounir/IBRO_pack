@@ -6,7 +6,7 @@ import OrderForm from '@/components/OrderForm';
 import { ShoppingBag } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
-const PAGE_SIZE = 12;
+const PAGE_SIZE = 6;
 
 export default function CustomerPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -31,10 +31,10 @@ export default function CustomerPage() {
       setErrorMsg('');
       const from = (page - 1) * PAGE_SIZE;
       const to = page * PAGE_SIZE - 1;
-      const { data, error } = await supabase
+      const { data,count, error } = await supabase
         .from('Products')
         //table rowك
-        .select('id, name, oldPrice, newPrice, imageUrl, isFeatured, createAt')
+        .select('id, name, oldPrice, newPrice, imageUrl',{count : 'exact'})
         .range(from, to);
       setLoading(false);
       if (error) {
@@ -45,6 +45,7 @@ export default function CustomerPage() {
         setProducts([]);
       } else {
         setProducts(data);
+        setTotalProducts(count ?? 0); // كل مرة مع تحديث المنتجات تحدث العدد، بدل استعلام منفصل
       }
     };
     fetchProducts();
