@@ -15,8 +15,8 @@ export default function CustomerPage() {
   const [page, setPage] = useState(1);
   const [totalProducts, setTotalProducts] = useState(0);
   const [errorMsg, setErrorMsg] = useState('');
+  const [showOrderFormModal, setShowOrderFormModal] = useState(false);
 
-  // جلب العدد الإجمالي (لتقسيم الصفحات)
   useEffect(() => {
     supabase
       .from('Products')
@@ -24,17 +24,15 @@ export default function CustomerPage() {
       .then(({ count }) => setTotalProducts(count ?? 0));
   }, []);
 
-  // جلب المنتجات مع التقسيم
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
       setErrorMsg('');
       const from = (page - 1) * PAGE_SIZE;
       const to = page * PAGE_SIZE - 1;
-      const { data,count, error } = await supabase
+      const { data, count, error } = await supabase
         .from('Products')
-        //table rowك
-        .select('id, name, oldPrice, newPrice, imageUrl',{count : 'exact'})
+        .select('id, name, oldPrice, newPrice, imageUrl, isFeatured', { count: 'exact' })
         .range(from, to);
       setLoading(false);
       if (error) {
@@ -45,7 +43,7 @@ export default function CustomerPage() {
         setProducts([]);
       } else {
         setProducts(data);
-        setTotalProducts(count ?? 0); // كل مرة مع تحديث المنتجات تحدث العدد، بدل استعلام منفصل
+        setTotalProducts(count ?? 0);
       }
     };
     fetchProducts();
@@ -65,6 +63,7 @@ export default function CustomerPage() {
     } else {
       setCart([...cart, { product, quantity: 1 }]);
     }
+    setShowOrderFormModal(true);
   };
 
   const handleRemoveFromCart = (productId: string) => {
@@ -82,13 +81,38 @@ export default function CustomerPage() {
 
   const handleClearCart = () => {
     setCart([]);
+    setShowOrderFormModal(false); // غلق النموذج عند مسح السلة أو بعد الطلب
   };
 
-  // حساب عدد الصفحات الكلي
   const pageCount = Math.max(1, Math.ceil(totalProducts / PAGE_SIZE));
+
+  const handleCloseOrderForm = () => {
+    setShowOrderFormModal(false);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50">
+      {/* نافذة نموذج الطلب (Modal) */}
+      {showOrderFormModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-xl relative">
+            <button
+              onClick={handleCloseOrderForm}
+              className="absolute top-2 right-2 text-3xl text-gray-400 font-bold focus:outline-none"
+              aria-label="إغلاق"
+            >
+              &times;
+            </button>
+            <OrderForm
+              cart={cart}
+              onRemoveFromCart={handleRemoveFromCart}
+              onUpdateQuantity={handleUpdateQuantity}
+              onClearCart={handleClearCart}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <header className="bg-gradient-to-r from-orange-500 via-orange-600 to-amber-500 shadow-lg sticky top-0 z-50">
         <div className="container mx-auto px-4 py-5">
@@ -171,39 +195,9 @@ export default function CustomerPage() {
                   onAddToCart={handleAddToCart}
                 />
               )}
-
-              {/* Pagination Buttons */}
-              <div className="flex justify-center gap-2 mt-8">
-                <button
-                  disabled={page === 1}
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  className={`px-3 py-2 rounded ${page === 1 ? 'bg-gray-200' : 'bg-orange-500 text-white'}`}
-                >
-                  السابق
-                </button>
-                <span className="px-4 py-2 rounded bg-white shadow text-orange-600">
-                  صفحة {page} / {pageCount}
-                </span>
-                <button
-                  disabled={page === pageCount || regularProducts.length < PAGE_SIZE}
-                  onClick={() => setPage(p => Math.min(pageCount, p + 1))}
-                  className={`px-3 py-2 rounded ${page === pageCount ? 'bg-gray-200' : 'bg-orange-500 text-white'}`}
-                >
-                  التالي
-                </button>
-              </div>
             </div>
           </div>
-
-          {/* Order Form Section */}
-          <div className="lg:col-span-1">
-            <OrderForm
-              cart={cart}
-              onRemoveFromCart={handleRemoveFromCart}
-              onUpdateQuantity={handleUpdateQuantity}
-              onClearCart={handleClearCart}
-            />
-          </div>
+          {/* لم يعد هناك أي OrderForm أو سلة جانب الصفحة */}
         </div>
       </div>
 
