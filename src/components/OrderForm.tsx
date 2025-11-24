@@ -144,8 +144,8 @@ export default function OrderForm({ cart, onRemoveFromCart, onUpdateQuantity, on
       <Card className="sticky top-6">
         <CardContent className="p-8 text-center">
           <ShoppingBag className="mx-auto h-16 w-16 text-gray-400 mb-4" />
-          <p className="text-gray-600 text-lg">السلة فارغة</p>
-          <p className="text-gray-500 text-sm mt-2">أضف منتجات لبدء الطلب</p>
+          <p className="text-gray-600 text-lg">لقد ألغيت الطلب</p>
+          <p className="text-gray-500 text-sm mt-2">حــــأول مرة أخرى</p>
         </CardContent>
       </Card>
     );
