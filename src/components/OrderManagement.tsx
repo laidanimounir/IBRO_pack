@@ -53,6 +53,10 @@ export default function OrderManagement() {
 const [page, setPage] = useState(1);
 const pageSize = 10;
 
+const getCustomerInfoById = (customerId) => {
+  return customers.find(c => c.id === customerId);
+};
+
 // دالة جلب الطلبات فقط هي التي تستعمل التقسيم
 const loadOrders = async () => {
   const { data, error } = await supabase
@@ -410,7 +414,7 @@ printWindow.print();
                   <TableHead className="text-right">العنوان</TableHead>
                   <TableHead className="text-right">الهاتف</TableHead>
                   <TableHead className="text-right">الاسم</TableHead>
-                  <TableHead className="text-right">رقم الطلب</TableHead>
+                  
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -521,7 +525,7 @@ printWindow.print();
                         <TableCell>{order.totalAmount?.toLocaleString('ar-DZ')} دج</TableCell>
                         <TableCell className="text-sm">{order.address}</TableCell>
                         <TableCell>
-                          <div className="flex items-center justify-end">
+                          <div className="flex items-center justify-start">
                             <span>{order.phone}</span>
                             {customerInfo?.warnings > 0 && (
                               <Badge className="ml-2 bg-red-600 text-xs">
@@ -535,8 +539,8 @@ printWindow.print();
                             )}
                           </div>
                         </TableCell>
-                        <TableCell>{order.customerName}</TableCell>
-                        <TableCell>#{order.id}</TableCell>
+                        <TableCell>{getCustomerInfoById(order. customerId)?.name || "اسم غير متوفر"}</TableCell>
+                        
                       </TableRow>
                     );
                   })
@@ -572,7 +576,7 @@ printWindow.print();
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg text-right">
                       <p className="mb-1 text-sm text-blue-600 font-semibold">اسم الزبون</p>
-                      <p className="text-lg font-bold text-gray-900">{selectedOrder.customerName}</p>
+                      <p className="text-lg font-bold text-gray-900">اسم</p>
                     </div>
                     <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg text-right">
                       <p className="mb-1 text-sm text-green-600 font-semibold">الهاتف</p>
