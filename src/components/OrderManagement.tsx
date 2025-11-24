@@ -1,3 +1,5 @@
+//Improve order table UI: enhanced layout and customer info
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Order, Customer, OrderItem } from '@/types/types';
