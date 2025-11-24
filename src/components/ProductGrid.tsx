@@ -53,7 +53,7 @@ export default function ProductGrid({ products, onAddToCart }: ProductGridProps)
                 className="w-full bg-orange-600 hover:bg-orange-700 text-white"
               >
                 <ShoppingCart className="ml-2 h-5 w-5" />
-                أضف إلى السلة
+                أطلب الآن
               </Button>
             </CardFooter>
           </Card>
