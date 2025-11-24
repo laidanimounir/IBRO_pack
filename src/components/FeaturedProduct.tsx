@@ -47,8 +47,7 @@ export default function FeaturedProduct({ product, onAddToCart }: FeaturedProduc
             className="bg-orange-600 hover:bg-orange-700 text-white text-xl py-6 px-8 rounded-xl shadow-lg"
           >
             <ShoppingCart className="ml-2 h-6 w-6" />
-            أضف إلى السلة
-          </Button>
+أطلب الآن          </Button>
         </div>
         
         <div className="flex items-center justify-center">
