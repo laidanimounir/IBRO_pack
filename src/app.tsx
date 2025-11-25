@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/contexts/AuthContext";
+import ReactPixel from 'react-facebook-pixel';
 
 import CustomerPage from "./pages/CustomerPage";
 import AdminLoginPage from "./pages/AdminLoginPage";
@@ -19,6 +20,17 @@ const App = () => {
     testSupabaseConnection();
 }, []);
 
+
+function App() {
+  
+
+  useEffect(() => {
+    
+    ReactPixel.init('111111111111111'); 
+    ReactPixel.pageView(); 
+  }, []);
+}
+  
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -36,6 +48,6 @@ const App = () => {
       </TooltipProvider>
     </QueryClientProvider>
   );
-};
+}
 
 export default App;
