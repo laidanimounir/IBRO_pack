@@ -5,7 +5,7 @@ export interface Product {
   newPrice: number;
   imageUrl: string;
   isFeatured: boolean;
-  createdAt: string;
+  createAt: string;
 }
 
 export interface OrderItem {

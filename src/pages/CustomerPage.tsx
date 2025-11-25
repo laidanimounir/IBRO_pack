@@ -17,37 +17,64 @@ export default function CustomerPage() {
   const [errorMsg, setErrorMsg] = useState('');
   const [showOrderFormModal, setShowOrderFormModal] = useState(false);
 
-  useEffect(() => {
-    supabase
-      .from('Products')
-      .select('id', { count: 'exact', head: true })
-      .then(({ count }) => setTotalProducts(count ?? 0));
-  }, []);
+ 
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      setLoading(true);
-      setErrorMsg('');
+
+
+useEffect(() => {
+  let isMounted = true;
+  
+  const fetchProducts = async () => {
+    setLoading(true);
+    setErrorMsg('');
+
+    try {
       const from = (page - 1) * PAGE_SIZE;
       const to = page * PAGE_SIZE - 1;
+
+      // 1. تم دمج الطلبين في طلب واحد (نحصل على البيانات والعدد معاً)
+      // 2. تأكدت من جلب الأعمدة الضرورية فقط
       const { data, count, error } = await supabase
         .from('Products')
-        .select('id, name, oldPrice, newPrice, imageUrl, isFeatured', { count: 'exact' })
+        .select('id, name, oldPrice, newPrice, imageUrl, isFeatured,createAt', { count: 'exact' })
         .range(from, to);
-      setLoading(false);
+
+      if (!isMounted) return; // إذا تغيرت الصفحة، لا تقم بتحديث الحالة
+
       if (error) {
-        setErrorMsg('فشل تحميل المنتجات');
-        setProducts([]);
-      } else if (!data || data.length === 0) {
-        setErrorMsg('لا توجد منتجات للعرض حالياً');
-        setProducts([]);
-      } else {
-        setProducts(data);
-        setTotalProducts(count ?? 0);
+        throw error;
       }
-    };
-    fetchProducts();
-  }, [page]);
+
+      if (data && data.length > 0) {
+        setProducts(data);
+        // نستفيد من العدد القادم مع البيانات ولا داعي لطلبه منفصلاً
+        setTotalProducts(count ?? 0); 
+      } else {
+        setProducts([]);
+        setErrorMsg('لا توجد منتجات للعرض حالياً');
+      }
+
+    } catch (err) {
+      if (isMounted) {
+        console.error("Error fetching products:", err.message);
+        setErrorMsg('فشل تحميل المنتجات، يرجى التحقق من الاتصال');
+      }
+    } finally {
+      if (isMounted) setLoading(false);
+    }
+  };
+
+  fetchProducts();
+
+  // تنظيف الذاكرة عند تغيير الصفحة
+  return () => {
+    isMounted = false;
+  };
+
+}, [page]); // فقط page هي المتغير
+
+
+
 
   const featuredProduct = products.find(p => p.isFeatured);
   const regularProducts = products.filter(p => !p.isFeatured);
