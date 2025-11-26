@@ -9,28 +9,22 @@ import ReactPixel from 'react-facebook-pixel';
 import CustomerPage from "./pages/CustomerPage";
 import AdminLoginPage from "./pages/AdminLoginPage";
 import AdminDashboard from "./pages/AdminDashboard";
-
 import { testSupabaseConnection } from "./testSupabase";
 
 const queryClient = new QueryClient();
 
 const App = () => {
-  // ✅ Hook داخل المكون
   useEffect(() => {
     testSupabaseConnection();
-}, []);
-
-
-function App() {
-  
-
-  useEffect(() => {
     
-    ReactPixel.init('111111111111111'); 
-    ReactPixel.pageView(); 
+    
+    ReactPixel.init('827374046868024', undefined, {
+      autoConfig: true,
+      debug: true 
+    });
+    ReactPixel.pageView();
   }, []);
-}
-  
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -48,6 +42,6 @@ function App() {
       </TooltipProvider>
     </QueryClientProvider>
   );
-}
+};
 
 export default App;
