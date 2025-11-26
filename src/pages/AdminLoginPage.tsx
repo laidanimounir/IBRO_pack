@@ -42,14 +42,14 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-100 via-white to-amber-100 flex items-center justify-center p-4">
-      <Card className="w-full max-w-md shadow-2xl">
-        <CardHeader className="bg-orange-600 text-white rounded-t-lg">
-          <CardTitle className="text-3xl text-center">لوحة تحكم ADMIN</CardTitle>
+    <div className="min-h-screen bg-gradient-to-br from-blue-500 via-black to-black-1200 flex items-center justify-center p-4">
+      <Card className="w-full max-w-md shadow-2x1">
+        <CardHeader className="bg-blue-600 text-Black rounded-t-1g">
+          <CardTitle className="text-3xl text-center">لوحة تحكم Brahim</CardTitle>
           <p className="text-center text-orange-100 mt-2">IBRO kitchen dz</p>
         </CardHeader>
         <CardContent className="p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-2">
               <Label htmlFor="username" className="text-right block text-lg">
                 اسم المستخدم
@@ -62,7 +62,7 @@ export default function AdminLoginPage() {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="أدخل اسم المستخدم"
-                  className="pr-10 text-right text-lg py-6"
+                  className="pr-10 text-right text-lg py-7"
                   required
                 />
               </div>
@@ -79,17 +79,25 @@ export default function AdminLoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="أدخل كلمة المرور"
-                  className="pr-10 text-right text-lg py-6"
+                  className="pr-10 text-right text-lg py-7"
                   required
                 />
               </div>
             </div>
             <Button
               type="submit"
-              className="w-full bg-orange-600 hover:bg-orange-700 text-white text-lg py-6"
+              className="w-full bg-blue-600 hover:bg-red-700 text-white text-lg py-8"
             >
               تسجيل الدخول
             </Button>
+            
+            <Button
+              type="submit"
+              className="w-full bg-orange-600 hover:bg-black-700 text-white text-lg py-5"
+            >
+             نسيت كلمة المرور
+            </Button>
+            
           </form>
         </CardContent>
       </Card>
