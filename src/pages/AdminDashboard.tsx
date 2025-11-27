@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import ProductManagement from '@/components/ProductManagement';
 import OrderManagement from '@/components/OrderManagement';
-import { LogOut, Package, ShoppingCart } from 'lucide-react';
+import  { LogOut, Package, ShoppingCart, Users, Settings,Palette,Store }  from 'lucide-react';
 
 export default function AdminDashboard() {
   const { isAuthenticated, logout } = useAuth();
@@ -84,6 +84,7 @@ export default function AdminDashboard() {
                 <Package className="h-5 w-5" />
               </div>
             </TabsTrigger>
+
             
             <TabsTrigger 
               value="orders" 
@@ -94,8 +95,60 @@ export default function AdminDashboard() {
                 <ShoppingCart className="h-5 w-5" />
               </div>
             </TabsTrigger>
+
+
+<TabsTrigger 
+  value="customers" 
+  className="px-8 py-2.5 rounded-full text-base font-medium transition-all data-[state=active]:bg-orange-600 data-[state=active]:text-white data-[state=active]:shadow-md hover:text-orange-700"
+>
+  <div className="flex items-center gap-2">
+    قائمة الزبائن
+    <Users className="h-5 w-5" />
+  </div>
+</TabsTrigger>
+
+
+
+<TabsTrigger 
+  value="settings" 
+  className="px-8 py-2.5 rounded-full text-base font-medium transition-all data-[state=active]:bg-orange-600 data-[state=active]:text-white data-[state=active]:shadow-md hover:text-orange-700"
+>
+  <div className="flex items-center gap-2">
+    الإعدادات
+    <Settings className="h-5 w-5" />
+  </div>
+</TabsTrigger>
+
+
+
+{/* تبويب تخصيص الواجهة */}
+<TabsTrigger 
+  value="storefront" 
+  className="px-6 py-2.5 rounded-full text-base font-medium transition-all data-[state=active]:bg-orange-600 data-[state=active]:text-white data-[state=active]:shadow-md hover:text-orange-700"
+>
+  <div className="flex items-center gap-2">تغيير معلومات واجهة الزبائن 
+    <Palette className="h-5 w-5" />
+  </div>
+</TabsTrigger>
+
+{/* تبويب بيانات المتجر */}
+<TabsTrigger 
+  value="store-info" 
+  className="px-6 py-2.5 rounded-full text-base font-medium transition-all data-[state=active]:bg-orange-600 data-[state=active]:text-white data-[state=active]:shadow-md hover:text-orange-700"
+>
+  <div className="flex items-center gap-2">
+    تعديل بيانات متجر الزبائن
+    <Store className="h-5 w-5" />
+  </div>
+</TabsTrigger>
+
+
+
+
           </TabsList>
 
+
+      
           {/* المحتوى */}
           <TabsContent value="products" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <ProductManagement />
