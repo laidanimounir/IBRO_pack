@@ -419,6 +419,7 @@ useEffect(() => {
 
 
 
+
   return (
     <div className="space-y-6">
 
@@ -484,152 +485,115 @@ useEffect(() => {
             </div>
           </div>
 
-          <div className="border rounded-lg overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="text-right">الإجراءات</TableHead>
-                  <TableHead className="text-right">الحالة</TableHead>
-                  <TableHead className="text-right">المبلغ</TableHead>
-                  <TableHead className="text-right">العنوان</TableHead>
-                  <TableHead className="text-right">الهاتف</TableHead>
-                  <TableHead className="text-right">الاسم</TableHead>
-                  
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredOrders.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} className="text-center text-gray-500">لا توجد طلبات حالياً</TableCell>
-                  </TableRow>
-                ) : (
-                  filteredOrders.map(order => {
-                    const customerInfo = getCustomerInfo(order.phone);
-                    return (
-                      <TableRow
-                        key={order.id}
-                        className="hover:bg-gray-50 cursor-pointer"
-                        onClick={() => setSelectedOrder(order)}
-                      >
-                        <TableCell>
-                          <div className="flex gap-2 flex-wrap">
-                            {order.status === 'pending' && (
-                              <>
-                                <Button
-                                  size="sm"
-                                  className="bg-green-600 hover:bg-green-700"
-                                  onClick={e => { e.stopPropagation(); handleAccept(order); }}
-                                >
-                                  <CheckCircle className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="destructive"
-                                  onClick={e => { e.stopPropagation(); handleReject(order); }}
-                                >
-                                  <XCircle className="h-4 w-4" />
-                                </Button>
-                              </>
-                            )}
-                            {order.status === 'accepted' && (
-                              <Button
-                                size="sm"
-                                className="bg-blue-600 hover:bg-blue-700"
-                                onClick={e => { e.stopPropagation(); handleShip(order); }}
-                              >
-                                <Truck className="h-4 w-4" />
-                              </Button>
-                            )}
-                            {order.status === 'shipped' && (
-                              <>
-                                <Button
-                                  size="sm"
-                                  className="bg-purple-600 hover:bg-purple-700"
-                                  onClick={e => { e.stopPropagation(); handleDeliver(order); }}
-                                >
-                                  <Package className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="destructive"
-                                  onClick={e => { e.stopPropagation(); handleNotDelivered(order); }}
-                                >
-                                  <AlertTriangle className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={e => { e.stopPropagation(); handlePrintInvoice(order); }}
-                                >
-                                  <Printer className="h-4 w-4" />
-                                </Button>
-                              </>
-                            )}
-                            {order.status === 'delivered' && (
-                              <>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={e => { e.stopPropagation(); handlePrintInvoice(order); }}
-                                >
-                                  <Printer className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="destructive"
-                                  onClick={e => { e.stopPropagation(); handleDelete(order); }}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </>
-                            )}
-                            {order.status === 'rejected' && (
-                              <Button
-                                size="sm"
-                                variant="destructive"
-                                onClick={e => { e.stopPropagation(); handleDelete(order); }}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            {getStatusBadge(order.status)}
-                            {order.status === 'rejected' && order.rejectionReason && (
-                              <p className="text-xs text-red-600">السبب: {order.rejectionReason}</p>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>{order.totalAmount?.toLocaleString('ar-DZ')} دج</TableCell>
-                        <TableCell className="text-sm">{order.address}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center justify-start">
-                            <span>{order.phone}</span>
-                            {customerInfo?.warnings > 0 && (
-                              <Badge className="ml-2 bg-red-600 text-xs">
-                                <AlertTriangle className="h-3 w-3" />
-                              </Badge>
-                            )}
-                            {customerInfo?.isReliable && (
-                              <Badge className="ml-2 bg-green-600 text-xs">
-                                <ThumbsUp className="h-3 w-3" />
-                              </Badge>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>{getCustomerInfoById(order. customerId)?.name || "اسم غير متوفر"}</TableCell>
-                        
-                      </TableRow>
-                    );
-                  })
-                )}
-              </TableBody>
-                  
-            </Table>
- 
-          </div>
+
+         
+
+{/* --- بداية كود الجدول الجديد --- */}
+<div className="border rounded-xl overflow-hidden shadow-sm bg-white ring-1 ring-gray-200">
+  <Table>
+    <TableHeader className="bg-gray-50/80 border-b border-gray-200">
+      <TableRow className="hover:bg-transparent">
+        <TableHead className="text-right font-bold text-gray-700 py-4 w-[220px]">الإجراءات</TableHead>
+        <TableHead className="text-right font-bold text-gray-700">الحالة</TableHead>
+        <TableHead className="text-right font-bold text-gray-700">المبلغ</TableHead>
+        <TableHead className="text-right font-bold text-gray-700">العنوان</TableHead>
+        <TableHead className="text-right font-bold text-gray-700">الهاتف</TableHead>
+        <TableHead className="text-right font-bold text-gray-700">الاسم</TableHead>
+      </TableRow>
+    </TableHeader>
+    <TableBody>
+      {filteredOrders.length === 0 ? (
+        /* الحالة الفارغة (Empty State) */
+        <TableRow>
+          <TableCell colSpan={7} className="h-[400px] text-center align-middle">
+            <div className="flex flex-col items-center justify-center text-gray-400 animate-in fade-in zoom-in duration-300">
+              <div className="bg-gray-50 p-6 rounded-full mb-4 border border-dashed border-gray-200">
+                <Package className="h-12 w-12 text-gray-300" />
+              </div>
+              
+              <p className="text-sm text-gray-500 mt-1 max-w-xs mx-auto">
+                {searchTerm 
+                  ? "لا توجد نتائج مطابقة لبحثك." 
+                  : "القائمة فارغة. انتظر الطلبات الجديدة!"}
+              </p>
+            </div>
+          </TableCell>
+        </TableRow>
+      ) : (
+        /* عرض الطلبات */
+        filteredOrders.map(order => {
+          const customerInfo = getCustomerInfo(order.phone);
+          return (
+            <TableRow
+              key={order.id}
+              className="group hover:bg-orange-50/40 cursor-pointer transition-all border-b border-gray-100 last:border-0"
+              onClick={() => setSelectedOrder(order)}
+            >
+              {/* عمود الإجراءات */}
+              <TableCell className="py-3">
+                 <div className="flex gap-2 flex-wrap opacity-90 group-hover:opacity-100 transition-opacity">
+                    {order.status === 'pending' && (
+                      <>
+                        <Button size="sm" className="bg-green-600 hover:bg-green-700 shadow-sm h-8 w-8 p-0" onClick={e => { e.stopPropagation(); handleAccept(order); }}><CheckCircle className="h-4 w-4" /></Button>
+                        <Button size="sm" variant="destructive" className="shadow-sm h-8 w-8 p-0" onClick={e => { e.stopPropagation(); handleReject(order); }}><XCircle className="h-4 w-4" /></Button>
+                      </>
+                    )}
+                    {order.status === 'accepted' && (
+                      <Button size="sm" className="bg-blue-600 hover:bg-blue-700 shadow-sm h-8 w-8 p-0" onClick={e => { e.stopPropagation(); handleShip(order); }}><Truck className="h-4 w-4" /></Button>
+                    )}
+                    {order.status === 'shipped' && (
+                      <>
+                        <Button size="sm" className="bg-purple-600 hover:bg-purple-700 shadow-sm h-8 w-8 p-0" onClick={e => { e.stopPropagation(); handleDeliver(order); }}><Package className="h-4 w-4" /></Button>
+                        <Button size="sm" variant="destructive" className="h-8 w-8 p-0" onClick={e => { e.stopPropagation(); handleNotDelivered(order); }}><AlertTriangle className="h-4 w-4" /></Button>
+                        <Button size="sm" variant="outline" className="h-8 w-8 p-0" onClick={e => { e.stopPropagation(); handlePrintInvoice(order); }}><Printer className="h-4 w-4" /></Button>
+                      </>
+                    )}
+                    {(order.status === 'delivered' || order.status === 'rejected') && (
+                       <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-gray-400 hover:text-red-600" onClick={e => { e.stopPropagation(); handleDelete(order); }}><Trash2 className="h-4 w-4" /></Button>
+                    )}
+                 </div>
+              </TableCell>
+
+              {/* عمود الحالة */}
+              <TableCell>
+                <div className="space-y-1">
+                  {getStatusBadge(order.status)}
+                  {order.status === 'rejected' && order.rejectionReason && (
+                    <p className="text-[10px] text-red-600 bg-red-50 px-1 rounded truncate max-w-[100px]" title={order.rejectionReason}>
+                      {order.rejectionReason}
+                    </p>
+                  )}
+                </div>
+              </TableCell>
+
+              {/* بقية الأعمدة */}
+              <TableCell className="font-mono text-gray-700 font-medium">{order.totalAmount?.toLocaleString('ar-DZ')} دج</TableCell>
+              <TableCell className="text-sm text-gray-600 truncate max-w-[150px]" title={order.address}>{order.address}</TableCell>
+              
+              <TableCell>
+                  <div className="flex items-center justify-start gap-1.5">
+                    <span className="font-mono text-sm text-gray-600" dir="ltr">{order.phone}</span>
+                    {customerInfo?.warnings > 0 && <AlertTriangle className="h-3.5 w-3.5 text-red-500" />}
+                    {customerInfo?.isReliable && <ThumbsUp className="h-3.5 w-3.5 text-green-500" />}
+                  </div>
+              </TableCell>
+              
+              <TableCell className="font-medium text-gray-900">
+                {/* هنا عدلتها لتظهر الاسم بشكل صحيح بدلاً من البحث بالـ ID */}
+                {getCustomerInfoById(order. customerId)?.name || "اسم غير متوفر"}
+              </TableCell>
+            </TableRow>
+          );
+        })
+      )}
+    </TableBody>
+  </Table>
+</div>
+{/* --- نهاية كود الجدول الجديد --- */}
+
+
+
+
                   <div className="flex justify-center gap-3 my-4">
   <Button onClick={() => setPage(p => Math.max(1, p - 1))}>السابق</Button>
   <span>صفحة {page}</span>
