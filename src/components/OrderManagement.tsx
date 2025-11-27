@@ -1,5 +1,3 @@
-//Improve order table UI: enhanced layout and customer info
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Order, Customer, OrderItem } from '@/types/types';
@@ -387,8 +385,88 @@ printWindow.print();
     }
   };
 
+const stats = {
+    totalOrders: orders.length,
+    pendingOrders: orders.filter(o => o.status === 'pending').length,
+    // حساب المبيعات للطلبات المسلمة فقط
+    totalRevenue: orders
+        .filter(o => o.status === 'delivered')
+        .reduce((acc, curr) => acc + (curr.totalAmount || 0), 0)
+};
+const [totalRevenue, setTotalRevenue] = useState(0);
+
+
+
+const calculateTotalRevenue = async () => {
+  // نطلب كل الطلبات المسلمة "فقط" لحساب مجموعها
+  const { data, error } = await supabase
+    .from('Orders')
+    .select('totalAmount')
+    .eq('status', 'delivered');
+  
+  if (!error && data) {
+    const total = data.reduce((acc, curr) => acc + (curr.totalAmount || 0), 0);
+    setTotalRevenue(total);
+  }
+};
+
+// استدعِها عند تحميل الصفحة
+useEffect(() => {
+  loadOrders();
+  loadCustomers();
+  calculateTotalRevenue(); // <--- هنا
+}, [page]);
+
+
+
   return (
     <div className="space-y-6">
+
+
+
+{/* قسم الإحصائيات الجديد */}
+<div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+    {/* بطاقة الطلبات الجديدة */}
+    <Card className="bg-gradient-to-br from-orange-50 to-white border-orange-100 shadow-sm">
+        <CardContent className="p-6 flex items-center justify-between">
+            <div>
+                <p className="text-sm font-medium text-gray-500 text-right">طلبات جديدة</p>
+                <h3 className="text-3xl font-bold text-orange-600 mt-2">{stats.pendingOrders}</h3>
+            </div>
+            <div className="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center">
+                <AlertTriangle className="h-6 w-6 text-orange-600" />
+            </div>
+        </CardContent>
+    </Card>
+
+    {/* بطاقة المبيعات */}
+    <Card className="bg-gradient-to-br from-green-50 to-white border-green-100 shadow-sm">
+        <CardContent className="p-6 flex items-center justify-between">
+            <div>
+                <p className="text-sm font-medium text-gray-500 text-right">إجمالي المبيعات</p>
+                <h3 className="text-3xl font-bold text-green-600 mt-2">
+                    {stats.totalRevenue.toLocaleString('ar-DZ')} <span className="text-sm">دج</span>
+                </h3>
+            </div>
+            <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
+                <CheckCircle className="h-6 w-6 text-green-600" />
+            </div>
+        </CardContent>
+    </Card>
+
+    {/* بطاقة إجمالي الطلبات */}
+    <Card className="bg-gradient-to-br from-blue-50 to-white border-blue-100 shadow-sm">
+        <CardContent className="p-6 flex items-center justify-between">
+            <div>
+                <p className="text-sm font-medium text-gray-500 text-right">كل الطلبات</p>
+                <h3 className="text-3xl font-bold text-blue-600 mt-2">{stats.totalOrders}</h3>
+            </div>
+            <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
+                <Package className="h-6 w-6 text-blue-600" />
+            </div>
+        </CardContent>
+    </Card>
+</div>
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">إدارة الطلبات</CardTitle>
