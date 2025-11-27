@@ -295,17 +295,51 @@ printWindow.print();
   }
 
 
-  const getStatusBadge = (status: Order['status']) => {
-    const statusConfig = {
-      pending: { label: 'قيد الانتظار', className: 'bg-yellow-500' },
-      accepted: { label: 'مقبول', className: 'bg-green-500' },
-      rejected: { label: 'مرفوض', className: 'bg-red-500' },
-      shipped: { label: 'تم الإرسال', className: 'bg-blue-500' },
-      delivered: { label: 'تم التسليم', className: 'bg-purple-500' }
-    };
-    const config = statusConfig[status] ?? { label: 'غير معروف', className: 'bg-gray-400' };
-    return <Badge className={config.className}>{config.label}</Badge>;
+  
+
+const getStatusBadge = (status: Order['status']) => {
+  const statusConfig = {
+    pending: { 
+      label: 'قيد الانتظار', 
+      // أصفر دافئ مع نص بني غامق (أشيك وأوضح)
+      className: 'bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100' 
+    },
+    accepted: { 
+      label: 'مقبول', 
+      // أزرق سماوي فاتح (يدل على الانطلاق)
+      className: 'bg-sky-100 text-sky-700 border-sky-200 hover:bg-sky-100' 
+    },
+    rejected: { 
+      label: 'مرفوض', 
+      // أحمر وردي فاتح (تنبيه لطيف)
+      className: 'bg-red-100 text-red-700 border-red-200 hover:bg-red-100' 
+    },
+    shipped: { 
+      label: 'تم الإرسال', 
+      // بنفسجي فاتح (لون مميز لمرحلة الشحن)
+      className: 'bg-violet-100 text-violet-700 border-violet-200 hover:bg-violet-100' 
+    },
+    delivered: { 
+      label: 'تم التسليم', 
+      // أخضر زمردي (يدل على النجاح التام)
+      className: 'bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100' 
+    }
   };
+  
+  const config = statusConfig[status] ?? { label: 'غير معروف', className: 'bg-gray-100 text-gray-700' };
+  
+  return (
+    // استخدمنا variant="outline" ليعطي إطاراً خفيفاً مع الخلفية الفاتحة
+    <Badge variant="outline" className={`${config.className} px-3 py-1 text-xs font-bold shadow-sm border`}>
+      {config.label}
+    </Badge>
+  );
+};
+
+
+
+
+
 
   const getCustomerInfo = (phone: string) => {
     return customers.find(c => c.phone === phone);
