@@ -9,12 +9,18 @@ import { Trash2, ShoppingBag } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { Badge } from '@/components/ui/badge';
+import ReactPixel from 'react-facebook-pixel';
 
 interface OrderFormProps {
   cart: Array<{ product: Product; quantity: number }>;
   onRemoveFromCart: (productId: string) => void;
   onUpdateQuantity: (productId: string, quantity: number) => void;
   onClearCart: () => void;
+}
+declare global {
+  interface Window {
+    fbq: any;
+  }
 }
 
 export default function OrderForm({ cart, onRemoveFromCart, onUpdateQuantity, onClearCart }: OrderFormProps) {
@@ -23,6 +29,8 @@ export default function OrderForm({ cart, onRemoveFromCart, onUpdateQuantity, on
   const [address, setAddress] = useState('');
 
   const totalAmount = cart.reduce((sum, item) => sum + item.product.newPrice * item.quantity, 0);
+
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,10 +48,10 @@ export default function OrderForm({ cart, onRemoveFromCart, onUpdateQuantity, on
     try {
       let customerId: string | null = null;
 
-      // البحث عن العميل في جدول Customers ← نُعدّله ليُجلب totalOrders
+      // ... (جزء الزبون - اتركه كما هو) ...
       const { data: existingCustomer, error: selectError } = await supabase
         .from('Customers')
-        .select('id, totalOrders') // ← إضافة totalOrders
+        .select('id, totalOrders')
         .eq('phone', phone)
         .single();
 
@@ -53,19 +61,13 @@ export default function OrderForm({ cart, onRemoveFromCart, onUpdateQuantity, on
       }
 
       if (existingCustomer) {
-        // العميل موجود → تحديث عدد الطلبات
         const newTotalOrders = (existingCustomer.totalOrders ?? 0) + 1;
-        const { error: updateError } = await supabase
+        await supabase
           .from('Customers')
           .update({ totalOrders: newTotalOrders })
           .eq('phone', phone);
-
-        if (updateError) {
-          toast.error(`فشل تحديث بيانات الزبون: ${updateError.message}`);
-        }
         customerId = existingCustomer.id;
       } else {
-        // العميل جديد → إضافته
         const { data: newCustomer, error: insertError } = await supabase
           .from('Customers')
           .insert({
@@ -84,17 +86,15 @@ export default function OrderForm({ cart, onRemoveFromCart, onUpdateQuantity, on
           toast.error(`فشل إضافة الزبون: ${insertError.message}`);
           return;
         }
-
         customerId = newCustomer.id;
       }
 
-      // تأكد من وجود customerId
       if (!customerId) {
         toast.error('حدث خطأ في ربط الطلب بالزبون');
         return;
       }
 
-      // إضافة الطلب في جدول Orders
+      // ... (جزء الطلب - اتركه كما هو) ...
       const { data: newOrder, error: orderError } = await supabase
         .from('Orders')
         .insert({
@@ -115,7 +115,6 @@ export default function OrderForm({ cart, onRemoveFromCart, onUpdateQuantity, on
         return;
       }
 
-      // إضافة منتجات الطلب إلى جدول OrderItems
       const orderItems = cart.map(item => ({
         orderId: newOrder.id,
         productId: item.product.id,
@@ -126,18 +125,30 @@ export default function OrderForm({ cart, onRemoveFromCart, onUpdateQuantity, on
 
       await supabase.from('OrderItems').insert(orderItems);
 
+      // 🔥 كود البيكسل (تم تصحيح المكان) 🔥
+      ReactPixel.track('Purchase', {
+        currency: "DZD",
+        value: totalAmount,
+        content_type: 'product',
+        num_items: cart.length
+      });
+
+      // ✅ الآن toast والمسح داخل الـ try بشكل صحيح
       toast.success('تم إرسال طلبك بنجاح! سنتواصل معك قريباً');
 
-      // مسح الحقول والسلة
       setCustomerName('');
       setPhone('');
       setAddress('');
       onClearCart();
-    } catch (err: any) {
+
+    } catch (err: any) { // هنا يغلق القوس try بشكل صحيح
       console.error('حدث خطأ أثناء معالجة الطلب:', err);
       toast.error('حدث خطأ أثناء إرسال الطلب');
     }
   };
+
+
+
 
   if (cart.length === 0) {
     return (
