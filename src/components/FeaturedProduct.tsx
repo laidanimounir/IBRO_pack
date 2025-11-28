@@ -20,12 +20,15 @@ export default function FeaturedProduct({ product, onAddToCart }: FeaturedProduc
 
   return (
     // إضافة pb-24 هنا لضمان عدم تغطية المحتوى بواسطة الزر الثابت
-    <div className="relative bg-white rounded-[2rem] overflow-hidden shadow-xl border border-gray-100 mb-12 pb-24 md:pb-0 relative h-[350px] ... cursor-pointer" onClick={() => navigate(`/product/${product.id}`)}>
+    <div 
+  onClick={() => navigate(`/product/${product.id}`)}
+  className="relative bg-white rounded-[2rem] overflow-hidden shadow-xl border border-gray-100 mb-12 cursor-pointer transition-transform hover:scale-[1.01] duration-300 min-h-[450px]"
+>
       
-      <div className="grid md:grid-cols-[40%_40%] gap-0">
+      <div className="flex flex-col md:flex-row h-full items-stretch">
         
         {/* 1. الصورة (كاملة العرض في الهاتف) */}
-        <div className="relative h-[350px] md:h-auto bg-gray-50 overflow-hidden group">
+        <div className="w-full md:w-[100%] relative h-64 md:h-auto bg-gray-100">
            <img 
              src={product.imageUrl} 
              alt={product.name}
@@ -37,7 +40,7 @@ export default function FeaturedProduct({ product, onAddToCart }: FeaturedProduc
         </div>
 
         {/* 2. المحتوى */}
-        <div className="p-5 md:p-12 flex flex-col justify-center text-right space-y-5">
+        <div className="p-5 md:p-12 flex flex-col justify-center text-right space-y-5 md:w-[55%] p-6 md:p-12">
            
            <div>
               <div className="flex items-center justify-end gap-2 mb-2">
