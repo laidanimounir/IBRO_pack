@@ -118,18 +118,25 @@ useEffect(() => {
   };
 
   return (
+      
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50">
-      {/* نافذة نموذج الطلب (Modal) */}
+      {/* نافذة نموذج الطلب (Modal) - نسخة Bottom Sheet للموبايل */}
       {showOrderFormModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-xl relative">
+        // لاحظ: items-end للموبايل (ينزل للأسفل) و items-center للحاسوب
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end md:items-center justify-center z-[100] p-0 md:p-4 animate-in fade-in duration-200">
+          
+          {/* لاحظ: rounded-t-[2rem] للموبايل (حواف دائرية من فوق فقط) */}
+          <div className="bg-white w-full max-w-lg relative max-h-[85vh] overflow-hidden rounded-t-[2rem] md:rounded-2xl shadow-2xl flex flex-col animate-in slide-in-from-bottom duration-300">
+            
+            {/* زر الإغلاق */}
             <button
               onClick={handleCloseOrderForm}
-              className="absolute top-2 right-2 text-3xl text-gray-400 font-bold focus:outline-none"
-              aria-label="إغلاق"
+              className="absolute top-3 right-4 z-20 bg-gray-100/80 hover:bg-gray-200 p-1.5 rounded-full transition-colors"
             >
-              &times;
+              <span className="text-xl font-bold text-gray-500 leading-none">&times;</span>
             </button>
+
+            {/* الفورم */}
             <OrderForm
               cart={cart}
               onRemoveFromCart={handleRemoveFromCart}
@@ -139,6 +146,7 @@ useEffect(() => {
           </div>
         </div>
       )}
+
 
       {/* Header */}
       <header className="bg-gradient-to-r from-orange-500 via-orange-600 to-amber-500 shadow-lg sticky top-0 z-50">
