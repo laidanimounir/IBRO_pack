@@ -2,6 +2,8 @@ import React from 'react';
 import { Product } from '@/types/types';
 import { Button } from '@/components/ui/button';
 import { ShoppingCart, Truck, Star, Calculator } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+
 
 interface FeaturedProductProps {
   product: Product;
@@ -12,22 +14,22 @@ const DELIVERY_PRICE = 500;
 const PRODUCT_DESCRIPTION = "الخيار الأمثل لمطبخك العصري. أداء قوي، تصميم متين، ونتائج مذهلة في كل مرة. احصل عليه الآن واستفد من العرض المحدود.";
 
 export default function FeaturedProduct({ product, onAddToCart }: FeaturedProductProps) {
-  
+   const navigate = useNavigate();
   const discount = Math.round(((product.oldPrice - product.newPrice) / product.oldPrice) * 100);
   const finalPrice = product.newPrice + DELIVERY_PRICE;
 
   return (
     // إضافة pb-24 هنا لضمان عدم تغطية المحتوى بواسطة الزر الثابت
-    <div className="relative bg-white rounded-[2rem] overflow-hidden shadow-xl border border-gray-100 mb-12 pb-24 md:pb-0">
+    <div className="relative bg-white rounded-[2rem] overflow-hidden shadow-xl border border-gray-100 mb-12 pb-24 md:pb-0 relative h-[350px] ... cursor-pointer" onClick={() => navigate(`/product/${product.id}`)}>
       
-      <div className="grid md:grid-cols-2 gap-0">
+      <div className="grid md:grid-cols-[40%_40%] gap-0">
         
         {/* 1. الصورة (كاملة العرض في الهاتف) */}
         <div className="relative h-[350px] md:h-auto bg-gray-50 overflow-hidden group">
            <img 
              src={product.imageUrl} 
              alt={product.name}
-             className="w-full h-full object-cover mix-blend-multiply" 
+             className="w-full md:w-3/5 p-6 md:p-8 flex flex-col justify-center text-right space-y-6" 
            />
            <div className="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg z-10 animate-pulse">
               تخفيض {discount}% 🔥

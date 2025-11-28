@@ -11,6 +11,7 @@ import CustomerPage from "./pages/CustomerPage";
 import AdminLoginPage from "./pages/AdminLoginPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import { testSupabaseConnection } from "./testSupabase";
+import ProductDetails from "./pages/ProductDetails";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +53,9 @@ const App = () => {
               <Route path="/admin/login" element={<AdminLoginPage />} />
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="*" element={<Navigate to="/" replace />} />
+              <Route path="/" element={<CustomerPage />} />
+                      <Route path="/product/:id" element={<ProductDetails />} />
+
             </Routes>
           </BrowserRouter>
         </AuthProvider>
