@@ -28,7 +28,7 @@ export default function FeaturedProduct({ product, onAddToCart }: FeaturedProduc
       <div className="flex flex-col md:flex-row h-full items-stretch">
         
         {/* 1. الصورة (كاملة العرض في الهاتف) */}
-        <div className="w-full md:w-[100%] relative h-64 md:h-auto bg-gray-100">
+        <div className="w-full md:w-[45%] relative min-h-[300px] md:min-h-full bg-gray-100">
            <img 
              src={product.imageUrl} 
              alt={product.name}
@@ -40,7 +40,7 @@ export default function FeaturedProduct({ product, onAddToCart }: FeaturedProduc
         </div>
 
         {/* 2. المحتوى */}
-        <div className="p-5 md:p-12 flex flex-col justify-center text-right space-y-5 md:w-[55%] p-6 md:p-12">
+        <div className="w-full md:w-[55%] p-6 md:p-12 flex flex-col justify-center text-right space-y-6">
            
            <div>
               <div className="flex items-center justify-end gap-2 mb-2">
