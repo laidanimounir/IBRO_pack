@@ -22,17 +22,17 @@ export default function FeaturedProduct({ product, onAddToCart }: FeaturedProduc
     // إضافة pb-24 هنا لضمان عدم تغطية المحتوى بواسطة الزر الثابت
     <div 
   onClick={() => navigate(`/product/${product.id}`)}
-  className="relative bg-white rounded-[2rem] overflow-hidden shadow-xl border border-gray-100 mb-12 cursor-pointer transition-transform hover:scale-[1.01] duration-300 min-h-[450px]"
+  className="relative bg-white rounded-[2rem] overflow-hidden shadow-xl border border-gray-100 mb-12 cursor-pointer transition-transform hover:scale-[1.01] duration-300 min-h-[450px] max-w-5xl mx-auto"
 >
       
       <div className="flex flex-col md:flex-row h-full items-stretch">
         
         {/* 1. الصورة (كاملة العرض في الهاتف) */}
-        <div className="w-full md:w-[45%] relative min-h-[300px] md:min-h-full bg-gray-100">
+        <div className="w-full md:w-[60%] relative min-h-[300px] md:min-h-full bg-white">
            <img 
              src={product.imageUrl} 
              alt={product.name}
-             className="w-full md:w-3/5 p-6 md:p-8 flex flex-col justify-center text-right space-y-6" 
+             className="absolute inset-0 w-full h-full object-cover" 
            />
            <div className="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded-full text-sm font-bold shadow-lg z-10 animate-pulse">
               تخفيض {discount}% 🔥
@@ -40,7 +40,7 @@ export default function FeaturedProduct({ product, onAddToCart }: FeaturedProduc
         </div>
 
         {/* 2. المحتوى */}
-        <div className="w-full md:w-[55%] p-6 md:p-12 flex flex-col justify-center text-right space-y-6">
+        <div className="w-full md:w-[40%] p-6 md:p-12 flex flex-col justify-center text-right space-y-6git ass ">
            
            <div>
               <div className="flex items-center justify-end gap-2 mb-2">
