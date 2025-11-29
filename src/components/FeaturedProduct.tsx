@@ -20,15 +20,12 @@ export default function FeaturedProduct({ product, onAddToCart }: FeaturedProduc
 
   return (
     // إضافة pb-24 هنا لضمان عدم تغطية المحتوى بواسطة الزر الثابت
-    <div 
-  onClick={() => navigate(`/product/${product.id}`)}
-  className="relative bg-white rounded-[2rem] overflow-hidden shadow-xl border border-gray-100 mb-12 cursor-pointer transition-transform hover:scale-[1.01] duration-300 min-h-[450px] max-w-5xl mx-auto"
->
+    <div className="relative bg-white rounded-[2rem] overflow-hidden shadow-xl border border-gray-100 mb-12 cursor-pointer transition-transform hover:scale-[1.01] duration-300 min-h-[450px] max-w-5xl mx-auto">
       
       <div className="flex flex-col md:flex-row h-full items-stretch">
         
         {/* 1. الصورة (كاملة العرض في الهاتف) */}
-        <div className="w-full md:w-[60%] relative min-h-[300px] md:min-h-full bg-white">
+        <div  onClick={() => navigate(`/product/${product.id}`)} className="w-full md:w-[60%] relative min-h-[300px] md:min-h-full bg-white cursor-pointer">
            <img 
              src={product.imageUrl} 
              alt={product.name}
@@ -40,7 +37,7 @@ export default function FeaturedProduct({ product, onAddToCart }: FeaturedProduc
         </div>
 
         {/* 2. المحتوى */}
-        <div className="w-full md:w-[40%] p-6 md:p-12 flex flex-col justify-center text-right space-y-6git ass ">
+        <div onClick={() => navigate(`/product/${product.id}`)} className="w-full md:w-[40%] p-6 md:p-12 flex flex-col justify-center text-right space-y-6git ass ">
            
            <div>
               <div className="flex items-center justify-end gap-2 mb-2">
@@ -82,7 +79,10 @@ export default function FeaturedProduct({ product, onAddToCart }: FeaturedProduc
                  <span className="text-lg font-bold text-green-600 leading-none">{finalPrice.toLocaleString()} دج</span>
               </div>
               <Button 
-                onClick={() => onAddToCart(product)}
+                onClick={(e) => {
+  e.stopPropagation();
+  onAddToCart(product);
+}}
                 className="flex-1 bg-orange-600 hover:bg-orange-700 text-white h-12 rounded-xl shadow-lg font-bold text-lg flex items-center justify-center gap-2"
               >
                 أطلب الآن <ShoppingCart size={18} />
@@ -92,7 +92,10 @@ export default function FeaturedProduct({ product, onAddToCart }: FeaturedProduc
            {/* زر الحاسوب (العادي) */}
            <div className="hidden md:block pt-2">
              <Button 
-               onClick={() => onAddToCart(product)}
+               onClick={(e) => {
+  e.stopPropagation();
+  onAddToCart(product);
+}}
                className="w-full bg-gray-900 hover:bg-orange-600 text-white text-xl py-8 rounded-xl shadow-lg flex items-center justify-center gap-3"
              >
                <span>إضافة للسلة فوراً</span>
