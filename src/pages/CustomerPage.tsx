@@ -6,6 +6,8 @@ import OrderForm from '@/components/OrderForm';
 import { ShoppingBag, Search, Menu } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 
+
+
 const PAGE_SIZE = 6;
 
 export default function CustomerPage() {
@@ -17,11 +19,14 @@ export default function CustomerPage() {
   const [errorMsg, setErrorMsg] = useState('');
   const [showOrderFormModal, setShowOrderFormModal] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-
+const [showBrowseButton, setShowBrowseButton] = useState(true);
+ 
   // Scroll effect for Navbar transparency
   useEffect(() => {
     const handleScroll = () => {
+      const currentY = window.scrollY;
       setIsScrolled(window.scrollY > 50);
+      setShowBrowseButton(scrollY < 300);
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
@@ -186,43 +191,35 @@ export default function CustomerPage() {
         </div>
       </header>
 
-      {/* Hero Section */}
-      <div className="relative h-[500px] md:h-[600px] overflow-hidden">
-        {/* Background Image */}
-        <img
-          src="/assets/hero-kitchen-banner.jpg"
-          alt="Kitchen Banner"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        
-        {/* Dark Overlay for Contrast */}
-        <div className="absolute inset-0 bg-black/40" />
+      
+{/* Hero Section */}
+<div className="relative min-h-screen overflow-hidden">
+  {/* Background Image */}
+  <img
+    src="/assets/ibro.png"
+    alt="Kitchen Banner"
+    className="absolute inset-0 w-full h-full object-cover"
+  />
+  
+  {/* Dark Overlay for Contrast */}
+  <div className="absolute inset-0 bg-black/40" />
 
-        {/* Hero Content */}
-        <div className="relative container mx-auto px-4 h-full flex flex-col justify-center items-center text-center pt-20">
-          <span className="inline-block px-4 py-1.5 mb-4 rounded-full bg-orange-500/20 backdrop-blur-sm border border-orange-500/30 text-orange-300 text-sm font-medium tracking-wide animate-in fade-in slide-in-from-bottom-4 duration-700">
-            جودة احترافية لمطبخك
-          </span>
-          
-          <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 drop-shadow-sm max-w-4xl leading-tight animate-in fade-in slide-in-from-bottom-6 duration-700 delay-100">
-            ارتقِ بتجربة الطبخ <br/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-amber-200">
-              إلى مستوى جديد
-            </span>
-          </h2>
-          
-          <p className="text-lg md:text-xl text-gray-200 mb-8 max-w-2xl animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
-            اكتشف مجموعتنا المختارة من أفضل أدوات المطبخ العصرية التي تجمع بين الأداء العالي والتصميم الأنيق.
-          </p>
-          
-          <button 
-            onClick={() => document.getElementById('products-section')?.scrollIntoView({ behavior: 'smooth' })}
-            className="bg-orange-500 hover:bg-orange-600 text-white px-8 py-3.5 rounded-full font-bold text-lg shadow-lg shadow-orange-500/30 transition-all hover:scale-105 active:scale-95 animate-in fade-in slide-in-from-bottom-10 duration-700 delay-300"
-          >
-            تصفح المنتجات
-          </button>
-        </div>
-      </div>
+  {/* Hero Content */}
+{showBrowseButton && (
+<div className="fixed bottom-6 left-0 right-0 z-40 flex justify-center pointer-events-none">
+  <button
+    onClick={() => document.getElementById('products-section')?.scrollIntoView({ behavior: 'smooth' })}
+    className="pointer-events-auto border-2 border-white text-white bg-transparent 
+               px-12 py-4 rounded-full font-extrabold text-xl tracking-wide
+               shadow-lg shadow-black/40
+               transition-all hover:bg-orange-500 hover:border-orange-500 hover:scale-110 active:scale-95"
+  >
+    تصفح المنتجات
+  </button>
+</div>
+)}
+
+</div>
 
       {/* Main Content */}
       <div id="products-section" className="container mx-auto px-4 py-16 space-y-16">
