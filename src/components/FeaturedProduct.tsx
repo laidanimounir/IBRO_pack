@@ -70,9 +70,9 @@ export default function FeaturedProduct({ product, onAddToCart }: FeaturedProduc
                  </span>
               </div>
            </div>
-
-           {/* 🔥🔥🔥 الزر الثابت (Sticky Button) داخل المكون نفسه 🔥🔥🔥 */}
-           {/* يظهر في الموبايل فقط (md:hidden) */}
+{/*
+           {/* 🔥🔥🔥 الزر الثابت (Sticky Button) داخل المكون نفسه 🔥🔥🔥 
+           {/* يظهر في الموبايل فقط (md:hidden) *}
            <div className="fixed bottom-0 left-0 right-0 p-3 bg-white border-t shadow-[0_-5px_20px_rgba(0,0,0,0.15)] z-50 md:hidden flex gap-3 items-center safe-area-pb animate-in slide-in-from-bottom-full">
               <div className="flex flex-col items-start">
                  <span className="text-[10px] text-gray-400 line-through">{product.oldPrice + DELIVERY_PRICE}دج  </span>
@@ -87,7 +87,7 @@ export default function FeaturedProduct({ product, onAddToCart }: FeaturedProduc
               >
                 أطلب الآن <ShoppingCart size={18} />
               </Button>
-           </div>
+           </div> */}
 
            {/* زر الحاسوب (العادي) */}
            <div className="hidden md:block pt-2">
