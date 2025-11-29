@@ -100,7 +100,8 @@ useEffect(() => {
 
   return (
     
-<div className="bg-white rounded-2xl shadow-sm border border-orange-100 overflow-hidden" id="order-form">
+<div className="bg-white rounded-2xl shadow-sm border border-orange-100" id="order-form">
+
       
 
 <div className="bg-orange-50 p-4 border-b border-orange-100">
@@ -191,7 +192,7 @@ useEffect(() => {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4" id="order-form-submit">
+        <form onSubmit={handleSubmit} className="space-y-0" id="order-form-submit">
 
   {/* عنوان الفورم */}
   <div className="text-center pb-2 border-b border-gray-200">
@@ -222,8 +223,16 @@ useEffect(() => {
             placeholder="العنوان (الولاية والبلدية)" 
             className="w-full p-3 border border-gray-200 rounded-lg h-24 resize-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition" 
           />
-          <button 
-  type="submit" 
+          <button  type="submit" 
+  onClick={() => {
+    ReactPixel.track('InitiateCheckout', {
+      productId: product.id,
+      value: finalTotal,
+      currency: 'DZD',
+      platform: 'desktop',
+    });
+  }}
+ 
   className="hidden md:block w-full bg-green-600 text-white py-4 rounded-xl font-bold hover:bg-green-700 transition shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]"
 >
   تأكيد الطلب
@@ -399,8 +408,16 @@ export default function ProductDetails() {
             </div>
 
             <button 
-              onClick={() => {
-                if (isFormFilled) {
+              
+onClick={() => {
+  if (isFormFilled) {
+    // حدث Pixel عند الإرسال من الهاتف
+    ReactPixel.track('InitiateCheckout', {
+      productId: product.id,
+      value: product.newPrice, 
+      currency: 'DZD',
+      platform: 'mobile',
+    });
                   const formSubmit = document.getElementById('order-form-submit') as HTMLFormElement;
                   if (formSubmit) {
                     formSubmit.requestSubmit();
