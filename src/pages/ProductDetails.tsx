@@ -208,12 +208,7 @@ useEffect(() => {
     className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition" 
   />
 
-          <input 
-            value={customerName} 
-            onChange={e => setCustomerName(e.target.value)} 
-            placeholder="الاسم الكامل" 
-            className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition" 
-          />
+          
           <input 
             value={phone} 
             onChange={e => setPhone(e.target.value)} 
