@@ -119,7 +119,6 @@ const [showBrowseButton, setShowBrowseButton] = useState(true);
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans" dir="rtl">
-      
       {/* Order Modal */}
       {showOrderFormModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end md:items-center justify-center z-[100] p-0 md:p-4 animate-in fade-in duration-200">
@@ -222,11 +221,11 @@ const [showBrowseButton, setShowBrowseButton] = useState(true);
 </div>
 
       {/* Main Content */}
-      <div id="products-section" className="container mx-auto px-4 py-16 space-y-16">
+      <div id="products-section" className="container mx-auto px-4 py-12 md:py-20 space-y-20 md:space-y-24">
         
         {/* Featured Product Section */}
         {featuredProduct && (
-          <section>
+          <section className="bg-white rounded-[2.5rem] p-6 md:p-12 shadow-sm border border-gray-100">
             <div className="flex items-center gap-4 mb-8">
               <div className="h-8 w-1.5 bg-orange-500 rounded-full"></div>
               <h2 className="text-2xl md:text-3xl font-bold text-gray-900">منتج مميز</h2>
