@@ -1,8 +1,8 @@
 import { Product } from '@/types/types';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingCart } from 'lucide-react';
+import { ShoppingCart, Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface ProductGridProps {
   products: Product[];
@@ -10,53 +10,79 @@ interface ProductGridProps {
 }
 
 export default function ProductGrid({ products, onAddToCart }: ProductGridProps) {
+  const navigate = useNavigate();
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-10 px-2">
       {products.map((product) => {
         const discount = Math.round(((product.oldPrice - product.newPrice) / product.oldPrice) * 100);
         
         return (
-          <Card key={product.id} className="overflow-hidden hover:shadow-xl transition-shadow duration-300">
-            <div className="relative h-64 overflow-hidden bg-gray-100">
+          <div 
+            key={product.id} 
+            onClick={() => navigate(`/product/${product.id}`)} 
+            className="group flex flex-col items-center text-center cursor-pointer"
+          >
+            
+            {/* 1. حاوية الصورة (مرنة أكثر الآن) */}
+            <div className="relative w-full aspect-[4/5] md:aspect-square bg-[#F5F5F5] rounded-[1.5rem] mb-4 flex items-center justify-center overflow-hidden transition-all duration-300 group-hover:shadow-md p-4">
+              
               {discount > 0 && (
-                <Badge className="absolute top-3 right-3 bg-red-600 text-white z-10">
+                <Badge className="absolute top-3 right-3 bg-black hover:bg-black text-white text-[10px] px-2 py-0.5 z-10 border-none">
                   -{discount}%
                 </Badge>
               )}
+
+              {/* الصورة تأخذ كامل الحجم المتاح داخل الـ padding */}
               <img 
                 src={product.imageUrl} 
                 alt={product.name}
-                className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                className="w-full h-full object-contain mix-blend-multiply transition-transform duration-500 group-hover:scale-110"
               />
+
+              <Button 
+                size="icon"
+                variant="secondary"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onAddToCart(product);
+                }}
+                className="absolute bottom-3 right-3 h-10 w-10 rounded-full bg-white text-orange-600 shadow-lg opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 hover:bg-orange-50 hidden md:flex"
+              >
+                <Plus className="h-5 w-5" />
+              </Button>
             </div>
             
-            <CardContent className="p-4">
-              <h3 className="text-xl font-semibold text-gray-900 mb-3 text-right">
+            {/* 2. المعلومات */}
+            <div className="w-full space-y-1">
+              <h3 className="text-base md:text-lg font-bold text-gray-900 leading-tight group-hover:text-orange-600 transition-colors">
                 {product.name}
               </h3>
               
-              <div className="flex items-baseline justify-end gap-3 mb-4">
-                <span className="text-2xl font-bold text-green-600">
-                  {product.newPrice.toLocaleString('ar-DZ')} دج
+              <div className="flex items-center justify-center gap-2 mt-2">
+                <span className="text-base md:text-lg font-bold text-gray-900">
+                  {product.newPrice.toLocaleString('ar-DZ')} <small className="text-xs font-normal">دج</small>
                 </span>
                 {product.oldPrice > product.newPrice && (
-                  <span className="text-lg text-gray-500 line-through">
-                    {product.oldPrice.toLocaleString('ar-DZ')} دج
+                  <span className="text-xs md:text-sm text-gray-400 line-through decoration-red-500">
+                    {product.oldPrice.toLocaleString('ar-DZ')}
                   </span>
                 )}
               </div>
-            </CardContent>
-            
-            <CardFooter className="p-4 pt-0">
+
               <Button 
-                onClick={() => onAddToCart(product)}
-                className="w-full bg-orange-600 hover:bg-orange-700 text-white"
+                onClick={(e) => {
+                    e.stopPropagation();
+                    onAddToCart(product);
+                }}
+                variant="outline"
+                className="w-full mt-3 md:hidden border-orange-200 text-orange-700 hover:bg-orange-50 hover:text-orange-800 h-9 text-xs font-bold rounded-lg"
               >
-                <ShoppingCart className="ml-2 h-5 w-5" />
                 أطلب الآن
               </Button>
-            </CardFooter>
-          </Card>
+
+            </div>
+          </div>
         );
       })}
     </div>
