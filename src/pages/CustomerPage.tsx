@@ -220,12 +220,19 @@ const [showBrowseButton, setShowBrowseButton] = useState(true);
 
 </div>
 
+
+
+
+
+
+
       {/* Main Content */}
       <div id="products-section" className="container mx-auto px-4 py-12 md:py-20 space-y-20 md:space-y-24">
         
         {/* Featured Product Section */}
         {featuredProduct && (
-          <section className="bg-white rounded-[2.5rem] p-6 md:p-12 shadow-sm border border-gray-100">
+          <section className="bg-gradient-to-br from-white to-orange-50 rounded-[2.5rem] p-6 md:p-12 shadow-sm border border-gray-100">
+
             <div className="flex items-center gap-4 mb-8">
               <div className="h-8 w-1.5 bg-orange-500 rounded-full"></div>
               <h2 className="text-2xl md:text-3xl font-bold text-gray-900">منتج مميز</h2>

@@ -12,6 +12,8 @@ import AdminLoginPage from "./pages/AdminLoginPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import { testSupabaseConnection } from "./testSupabase";
 import ProductDetails from "./pages/ProductDetails";
+import ScrollToTop from "./ScrollToTop";
+
 
 const queryClient = new QueryClient();
 
@@ -47,8 +49,10 @@ const App = () => {
         <AuthProvider>
           <BrowserRouter>
             {/* 👇 3. نضع الجاسوس هنا داخل الـ Router */}
-            <PixelTracker /> 
+            <PixelTracker />
+            <ScrollToTop /> 
             <Routes>
+            
               <Route path="/" element={<CustomerPage />} />
               <Route path="/admin/login" element={<AdminLoginPage />} />
               <Route path="/admin" element={<AdminDashboard />} />
