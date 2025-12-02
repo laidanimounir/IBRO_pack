@@ -12,13 +12,35 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // ✅ التحقق من sessionStorage عند تحميل الصفحة
-  useEffect(() => {
-    const auth = sessionStorage.getItem('admin_logged_in'); // ← sessionStorage
-    if (auth === 'true') {
-      setIsAuthenticated(true);
+ // ✅ التحقق من sessionStorage + Supabase عند تحميل الصفحة
+useEffect(() => {
+  const checkAdminSession = async () => {
+    const loggedIn = sessionStorage.getItem('admin_logged_in');
+    const username = sessionStorage.getItem('admin_username');
+
+    if (loggedIn === 'true' && username) {
+      // نسأل Supabase: هل هذا الأدمين ما زال موجوداً؟
+      const { data, error } = await supabase
+        .from('AdminUser')      // اسم الجدول عندك في Supabase
+        .select('id')
+        .eq('username', username)
+        .maybeSingle();
+
+      if (error || !data) {
+        // الأدمين محذوف أو لا يوجد → نمسح الجلسة
+        sessionStorage.removeItem('admin_logged_in');
+        sessionStorage.removeItem('admin_username');
+        setIsAuthenticated(false);
+      } else {
+        // الأدمين موجود فعلاً
+        setIsAuthenticated(true);
+      }
     }
-  }, []);
+  };
+
+  checkAdminSession();
+}, []);
+
 
   // ✅ دالة تسجيل الدخول
   const login = async (username: string, password: string): Promise<boolean> => {
