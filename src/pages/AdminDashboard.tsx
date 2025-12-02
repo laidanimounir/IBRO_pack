@@ -213,12 +213,13 @@ setTopProducts(topProductsList);
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 flex" dir="rtl">
       
-      <aside className={`
-        fixed right-0 top-0 h-screen bg-gradient-to-b from-orange-600 to-amber-600 text-white
-        transition-all duration-300 z-50 shadow-2xl
-        ${sidebarCollapsed ? 'w-20' : 'w-72'}
-        ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}
-      `}>
+  <aside className={`
+  fixed right-0 top-0 h-screen bg-gradient-to-b from-orange-600 to-amber-600 text-white
+  transition-all duration-300 z-50 shadow-2xl
+  ${mobileMenuOpen ? 'block' : 'hidden md:block'}
+  ${sidebarCollapsed ? 'w-20 md:w-20' : 'w-72'}
+`}>
+
         
         <div className="h-20 flex items-center justify-between px-4 border-b border-white/20">
           <div className={`flex items-center gap-3 transition-all overflow-hidden ${sidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100'}`}>
