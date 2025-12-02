@@ -16,12 +16,9 @@ export default function AdminDashboard() {
   const { isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
-  // ✅ حالات Sidebar المُصلحة
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // للـ Desktop فقط
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false); // للموبايل فقط
-  
-  // Stats State
   const [stats, setStats] = useState({
     totalOrders: 0,
     totalRevenue: 0,
@@ -29,7 +26,6 @@ export default function AdminDashboard() {
     totalCustomers: 0,
   });
   
-  // Chart Data
   const [salesData, setSalesData] = useState([]);
   const [topProducts, setTopProducts] = useState([]);
 
@@ -41,120 +37,128 @@ export default function AdminDashboard() {
     }
   }, [isAuthenticated, navigate]);
 
-  // ✅ جلب البيانات من Supabase
-  const fetchDashboardData = async () => {
-    try {
-      interface Product {
-        id: string;
-        name: string;
-        image: string | null;
-      }
-
-      interface OrderItem {
-        productId: string;
-        quantity: number;
-      }
-
-      interface ProductSale {
-        name: string;
-        image: string | null;
-        quantity: number;
-      }
-
-      // 1. عدد الطلبات
-      const { count: ordersCount } = await supabase
-        .from('orders')
-        .select('*', { count: 'exact', head: true });
-
-      // 2. إجمالي المبيعات
-      const { data: orders } = await supabase
-        .from('orders')
-        .select('totalPrice')
-        .eq('status', 'delivered');
-      
-      const revenue = orders?.reduce((sum: number, order: any) => sum + (order.totalPrice || 0), 0) || 0;
-
-      // 3. عدد المنتجات
-      const { count: productsCount } = await supabase
-        .from('products')
-        .select('*', { count: 'exact', head: true });
-
-      // 4. عدد الزبائن
-      const { data: customers } = await supabase
-        .from('orders')
-        .select('customerName');
-      
-      const uniqueCustomers = new Set(customers?.map((c: any) => c.customerName)).size;
-
-      setStats({
-        totalOrders: ordersCount || 0,
-        totalRevenue: revenue,
-        totalProducts: productsCount || 0,
-        totalCustomers: uniqueCustomers,
-      });
-
-      // 5. بيانات المبيعات (آخر 7 أيام)
-      const last7Days = Array.from({ length: 7 }, (_, i) => {
-        const date = new Date();
-        date.setDate(date.getDate() - (6 - i));
-        return date.toISOString().split('T')[0];
-      });
-
-      const salesByDay = await Promise.all(
-        last7Days.map(async (date) => {
-          const { data } = await supabase
-            .from('orders')
-            .select('totalPrice')
-            .gte('created_at', date)
-            .lt('created_at', new Date(new Date(date).getTime() + 86400000).toISOString());
-          
-          const total = data?.reduce((sum: number, order: any) => sum + (order.totalPrice || 0), 0) || 0;
-          return {
-            date: new Date(date).toLocaleDateString('ar-EG', { day: 'numeric', month: 'short' }),
-            sales: total,
-          };
-        })
-      );
-
-      setSalesData(salesByDay);
-
-      // 6. أكثر المنتجات مبيعاً
-      const { data: allProducts } = await supabase
-        .from('products')
-        .select('id, name, image');
-
-      const { data: orderItems } = await supabase
-        .from('order_items')
-        .select('productId, quantity');
-
-      const productsData = (allProducts || []) as Product[];
-      const orderItemsData = (orderItems || []) as OrderItem[];
-
-      const productSales: Record<string, ProductSale> = {};
-
-      orderItemsData.forEach((item) => {
-        const id = item.productId;
-        if (!productSales[id]) {
-          const product = productsData.find((p) => p.id === id);
-          productSales[id] = {
-            name: product?.name || 'منتج غير معروف',
-            image: product?.image || null,
-            quantity: 0,
-          };
-        }
-        productSales[id].quantity += item.quantity;
-      });
-
-      const topProductsList = Object.values(productSales)
-        .sort((a, b) => b.quantity - a.quantity)
-        .slice(0, 5);
-
-      setTopProducts(topProductsList);
-
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+ const fetchDashboardData = async () => {
+  console.log('🚀 Starting fetchDashboardData...');
+  try {
+    interface OrderItem {
+      productId: string;
+      productName: string;
+      price: number;
+      quantity: number;
     }
-  };
+
+    interface ProductSale {
+      name: string;
+      image: string | null;
+      quantity: number;
+    }
+
+    // ✅ 1. عدد الطلبات
+    const { count: ordersCount } = await supabase
+      .from('Orders')
+      .select('*', { count: 'exact', head: true });
+
+    // ✅ 2. إجمالي المبيعات
+    const { data: orders } = await supabase
+      .from('Orders')
+      .select('totalAmount, status')
+      .eq('status', 'delivered');
+    
+    const revenue = orders?.reduce((sum: number, order: any) => sum + (order.totalAmount || 0), 0) || 0;
+
+    // ✅ 3. عدد المنتجات
+    const { count: productsCount } = await supabase
+      .from('Products')
+      .select('*', { count: 'exact', head: true });
+
+    // ✅ 4. عدد الزبائن
+    const { data: customers } = await supabase
+      .from('Customers')
+      .select('id');
+    
+    const uniqueCustomers = customers?.length || 0;
+
+    setStats({
+      totalOrders: ordersCount || 0,
+      totalRevenue: revenue,
+      totalProducts: productsCount || 0,
+      totalCustomers: uniqueCustomers,
+    });
+
+    // ✅ 5. بيانات المبيعات (آخر 7 أيام)
+    const last7Days = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date();
+      date.setDate(date.getDate() - (6 - i));
+      return date.toISOString().split('T')[0];
+    });
+
+    const salesByDay = await Promise.all(
+      last7Days.map(async (date) => {
+        const nextDay = new Date(new Date(date).getTime() + 86400000).toISOString();
+        
+        const { data } = await supabase
+          .from('Orders')
+          .select('totalAmount')
+          .gte('createdAt', date)
+          .lt('createdAt', nextDay);
+        
+        const total = data?.reduce((sum: number, order: any) => sum + (order.totalAmount || 0), 0) || 0;
+        return {
+          date: new Date(date).toLocaleDateString('ar-EG', { day: 'numeric', month: 'short' }),
+          sales: total,
+        };
+      })
+    );
+
+    setSalesData(salesByDay);
+
+    // ✅ 6. أكثر المنتجات مبيعاً (ابدأ التعديل من هنا ⬇️)
+// ✅ 6. أكثر المنتجات مبيعاً (من OrderItems)
+const { data: allProducts } = await supabase
+  .from('Products')
+  .select('id, name, imageUrl');
+
+const { data: orderItems } = await supabase
+  .from('OrderItems') // ← بحرف I كبير
+  .select('productId, quantity, productName');
+
+console.log('📦 Order Items:', orderItems);
+
+const productSales: Record<string, ProductSale> = {};
+
+orderItems?.forEach((item: any) => {
+  const id = item.productId;
+  if (!productSales[id]) {
+    const product = allProducts?.find((p: any) => p.id === id);
+    productSales[id] = {
+      name: product?.name || item.productName || 'منتج غير معروف',
+      image: product?.imageUrl || null,
+      quantity: 0,
+    };
+  }
+  productSales[id].quantity += item.quantity;
+});
+
+console.log('📊 Sales:', productSales);
+
+const topProductsList = Object.values(productSales)
+  .sort((a, b) => b.quantity - a.quantity)
+  .slice(0, 5);
+
+console.log('🏆 Top:', topProductsList);
+
+setTopProducts(topProductsList);
+
+
+
+
+    // ✅ 6. نهاية قسم أكثر المنتجات (أنهِ التعديل هنا ⬆️)
+
+  } catch (error) {
+    console.error('Error fetching dashboard data:', error);
+  }
+};
+
 
   const handleLogout = () => {
     logout();
@@ -209,7 +213,6 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-amber-50 flex" dir="rtl">
       
-      {/* ✅ Sidebar المُصلح */}
       <aside className={`
         fixed right-0 top-0 h-screen bg-gradient-to-b from-orange-600 to-amber-600 text-white
         transition-all duration-300 z-50 shadow-2xl
@@ -217,9 +220,7 @@ export default function AdminDashboard() {
         ${mobileMenuOpen ? 'translate-x-0' : 'translate-x-full md:translate-x-0'}
       `}>
         
-        {/* Header */}
         <div className="h-20 flex items-center justify-between px-4 border-b border-white/20">
-          {/* الشعار */}
           <div className={`flex items-center gap-3 transition-all overflow-hidden ${sidebarCollapsed ? 'opacity-0 w-0' : 'opacity-100'}`}>
             <div className="h-12 w-12 rounded-full bg-white p-2 shadow-lg flex-shrink-0">
               <img 
@@ -234,7 +235,6 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* ✅ زر Toggle للـ Desktop */}
           <Button
             variant="ghost"
             size="icon"
@@ -244,7 +244,6 @@ export default function AdminDashboard() {
             {sidebarCollapsed ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
           </Button>
 
-          {/* زر إغلاق للموبايل */}
           <Button
             variant="ghost"
             size="icon"
@@ -255,7 +254,6 @@ export default function AdminDashboard() {
           </Button>
         </div>
 
-        {/* القائمة */}
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto h-[calc(100vh-160px)]">
           {menuItems.map((item) => {
             const Icon = item.icon;
@@ -287,7 +285,6 @@ export default function AdminDashboard() {
           })}
         </nav>
 
-        {/* Logout */}
         <div className="p-4 border-t border-white/20">
           <Button
             variant="ghost"
@@ -303,7 +300,6 @@ export default function AdminDashboard() {
         </div>
       </aside>
 
-      {/* Overlay للموبايل */}
       {mobileMenuOpen && (
         <div 
           className="fixed inset-0 bg-black/50 z-40 md:hidden"
@@ -311,9 +307,7 @@ export default function AdminDashboard() {
         />
       )}
 
-      {/* ✅ المحتوى الرئيسي */}
       <main className={`flex-1 transition-all duration-300 ${sidebarCollapsed ? 'md:mr-20' : 'md:mr-72'}`}>
-        {/* Top Bar */}
         <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm">
           <div className="px-6 h-16 flex items-center justify-between">
             <Button
@@ -330,14 +324,11 @@ export default function AdminDashboard() {
           </div>
         </header>
 
-        {/* محتوى الصفحات */}
         <div className="p-6">
           
-          {/* Dashboard الرئيسي */}
           {activeTab === 'dashboard' && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
               
-              {/* Stats Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {statsCards.map((stat, index) => {
                   const Icon = stat.icon;
@@ -357,10 +348,8 @@ export default function AdminDashboard() {
                 })}
               </div>
 
-              {/* Charts */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 
-                {/* Sales Chart */}
                 <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
                   <div className="flex items-center gap-2 mb-6">
                     <TrendingUp className="h-5 w-5 text-orange-600" />
@@ -380,7 +369,6 @@ export default function AdminDashboard() {
                   </ResponsiveContainer>
                 </div>
 
-                {/* Top Products */}
                 <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-200">
                   <h3 className="text-lg font-bold text-gray-800 mb-4">أكثر المنتجات مبيعاً</h3>
                   <div className="space-y-3">
@@ -407,7 +395,6 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {/* باقي الصفحات */}
           {activeTab === 'products' && (
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               <ProductManagement />
