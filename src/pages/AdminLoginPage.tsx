@@ -26,37 +26,36 @@ export default function AdminLoginPage() {
   }, [isAuthenticated, navigate]);
 
   // --- Login Logic ---
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('AdminUser')
-        .select('*')
-        .eq('username', username)
-        .eq('password', password)
-        .single();
+const handleLogin = async (e) => {
+  e.preventDefault();
+  setIsLoading(true);
+  
+  try {
+    // ✅ استدعاء دالة login من Context (هي اللي تتحقق وتحفظ)
+    const success = await login(username, password);
 
-      if (error || !data) {
-        toast.error('بيانات الدخول غير صحيحة');
-        setIsLoading(false);
-        return;
-      }
-      
-      const success = login(username, password);
-      if (success) {
-        toast.success('تم تسجيل الدخول بنجاح');
-           setTimeout(() => {
-            navigate('/admin', { replace: true }); // replace تمنع العودة لصفحة الدخول بالزر "رجوع"
-        }, 100);
-      
-      }
-    } catch (err) {
-      toast.error('خطأ في الاتصال');
-    } finally {
+    if (!success) {
+      toast.error('اسم المستخدم أو كلمة المرور غير صحيحة');
       setIsLoading(false);
+      return;
     }
-  };
+
+    // ✅ تسجيل الدخول نجح
+    toast.success('تم تسجيل الدخول بنجاح');
+    
+    // ✅ إعادة تحميل للمسار الجديد
+    setTimeout(() => {
+      window.location.href = '/admin';
+    }, 500);
+    
+  } catch (err) {
+    console.error('Login error:', err);
+    toast.error('خطأ في الاتصال');
+    setIsLoading(false);
+  }
+};
+
+
 
   // --- Reset Password Logic ---
   const handleResetPassword = async (e) => {
