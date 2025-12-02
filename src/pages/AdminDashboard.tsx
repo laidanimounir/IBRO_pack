@@ -307,7 +307,7 @@ setTopProducts(topProductsList);
         />
       )}
 
-      <main className={`flex-1 transition-all duration-300 ${sidebarCollapsed ? 'md:mr-20' : 'md:mr-72'}`}>
+      <main className={`flex-1 transition-all duration-300 mr-0 ${sidebarCollapsed ? 'md:mr-20' : 'md:mr-72'}`}>
         <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm">
           <div className="px-6 h-16 flex items-center justify-between">
             <Button
