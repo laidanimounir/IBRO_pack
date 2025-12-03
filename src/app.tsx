@@ -13,7 +13,9 @@ import AdminDashboard from "./pages/AdminDashboard";
 import { testSupabaseConnection } from "./testSupabase";
 import ProductDetails from "./pages/ProductDetails";
 import ScrollToTop from "./ScrollToTop";
+import AdminUpdatePasswordPage from '@/pages/admin/AdminUpdatePasswordPage';
 
+console.log('ADMIN EMAILS =>', import.meta.env.VITE_ADMIN_EMAILS);
 
 const queryClient = new QueryClient();
 
@@ -59,6 +61,7 @@ const App = () => {
               <Route path="*" element={<Navigate to="/" replace />} />
               <Route path="/" element={<CustomerPage />} />
                       <Route path="/product/:id" element={<ProductDetails />} />
+                      <Route path="/admin/update-password" element={<AdminUpdatePasswordPage />} />
 
             </Routes>
           </BrowserRouter>
