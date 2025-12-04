@@ -11,7 +11,7 @@ export function ManagementCustumers() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+const [searchTerm, setSearchTerm] = useState(""); // search
   useEffect(() => {
     const fetchCustomers = async () => {
       const { data, error } = await supabase
@@ -27,9 +27,28 @@ export function ManagementCustumers() {
 
     fetchCustomers();
   }, []);
+// filter custumers
+  const filteredCustomers = customers.filter((c) => {
+  if (!searchTerm) return true;
+  const term = searchTerm.toLowerCase();
   return (
-    <div className="space-y-4">
-      <h1 className="text-xl font-bold">قائمة الزبائن</h1>
+    c.name.toLowerCase().includes(term) ||
+    c.phone.toLowerCase().includes(term)
+  );
+});
+  return (
+      <div className="space-y-4">
+    <h1 className="text-xl font-bold">قائمة الزبائن</h1>
+
+    <div className="flex justify-end">
+      <input
+        type="text"
+        placeholder="ابحث بالاسم أو رقم الهاتف..."
+        className="mb-2 rounded border px-3 py-1 text-sm focus:outline-none focus:ring"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+      />
+    </div>
 
       <table className="min-w-full text-right text-sm">
         <thead className="bg-gray-100">
@@ -44,7 +63,7 @@ export function ManagementCustumers() {
           </tr>
         </thead>
         <tbody>
-          {customers.map((c) => (
+          {filteredCustomers.map((c) => (
             <tr key={c.id} className="border-b">
               <td className="p-2">{c.name}</td>
               <td className="p-2">{c.phone}</td>
