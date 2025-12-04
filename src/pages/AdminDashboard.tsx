@@ -11,6 +11,10 @@ import {
 } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { supabase } from '@/lib/supabase';
+import { ManagementCustumers } from "../components/ManagementCustumers";
+
+
+
 
 export default function AdminDashboard() {
   const { isAuthenticated, logout } = useAuth();
@@ -18,7 +22,8 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
+ 
+
   const [stats, setStats] = useState({
     totalOrders: 0,
     totalRevenue: 0,
@@ -409,9 +414,9 @@ setTopProducts(topProductsList);
           )}
 
           {activeTab === 'customers' && (
-            <div className="p-8 bg-white rounded-xl shadow-sm">
-              <h3 className="text-2xl font-bold text-gray-800 mb-4">قائمة الزبائن</h3>
-              <p className="text-gray-500">محتوى قائمة الزبائن هنا...</p>
+            
+           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <ManagementCustumers />
             </div>
           )}
 
