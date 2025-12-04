@@ -37,6 +37,7 @@ export interface Customer {
   deliveredOrders: number;
   isReliable: boolean;
   warnings: number;
+  address: string;
 }
 
 export interface AdminUser {
