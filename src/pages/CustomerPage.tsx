@@ -160,7 +160,7 @@ const [showBrowseButton, setShowBrowseButton] = useState(true);
                </div>
                <div>
                  <h1 className={`text-xl md:text-2xl font-bold ${isScrolled ? 'text-gray-900' : 'text-white'}`}>
-                   IBRO<span className="text-orange-500">.dz</span>
+                   IBRO<span className="text-orange-500">.kitchen</span>
                  </h1>
                </div>
             </div>
@@ -176,7 +176,9 @@ const [showBrowseButton, setShowBrowseButton] = useState(true);
                    <ShoppingBag className="w-6 h-6" />
                  </div>
                  {cart.length > 0 && (
-                   <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-[10px] font-bold rounded-full w-5 h-5 flex items-center justify-center border-2 border-white">
+                   <span className="absolute -top-1 -right-1 bg-orange-500 text-white font-bold rounded-full
+                 w-6 h-6 text-[11px] md:w-5 md:h-5 md:text-[10px]
+                 flex items-center justify-center border-2 border-white">
                      {cart.length}
                    </span>
                  )}
@@ -189,39 +191,99 @@ const [showBrowseButton, setShowBrowseButton] = useState(true);
           </div>
         </div>
       </header>
-
-      
 {/* Hero Section */}
-<div className="relative min-h-screen overflow-hidden">
-  {/* Background Image */}
+<div className="relative min-h-screen overflow-hidden bg-[#f8f5f2]">
+  {/* صورة الخلفية */}
   <img
     src="/assets/ibro.png"
-    alt="Kitchen Banner"
+    alt="IBRO Kitchen Banner"
     className="absolute inset-0 w-full h-full object-cover"
   />
-  
-  {/* Dark Overlay for Contrast */}
+
+  {/* طبقة تعتيم خفيفة */}
   <div className="absolute inset-0 bg-black/40" />
 
-  {/* Hero Content */}
-{showBrowseButton && (
-<div className="fixed bottom-6 left-0 right-0 z-40 flex justify-center pointer-events-none">
-  <button
-    onClick={() => document.getElementById('products-section')?.scrollIntoView({ behavior: 'smooth' })}
-    className="pointer-events-auto border-2 border-white text-white bg-transparent 
-               px-12 py-4 rounded-full font-extrabold text-xl tracking-wide
-               shadow-lg shadow-black/40
-               transition-all hover:bg-orange-500 hover:border-orange-500 hover:scale-110 active:scale-95"
+  {/* البانر البرتقالي يملأ ارتفاع الهيرو */}
+  <div className="absolute inset-0 z-10 flex justify-end">
+    <div className="w-full max-w-lg md:max-w-3xl lg:max-w-4xl h-full pr-4 md:pr-16">
+      <div className="relative h-full rounded-3xl shadow-2xl overflow-hidden animate-[heroSlideIn_0.6s_ease-out]">
+
+        {/* الخلفية البرتقالية المائلة فقط */}
+        <div
+          className="absolute inset-0 bg-gradient-to-br from-orange-500 to-orange-600"
+          style={{
+            clipPath: 'polygon(0 0, 100% 0, 60% 100%, 0 100%)',
+          }}
+        />
+
+        {/* محتوى الكارد فوق الخلفية، بدون أي clip-path */}
+        <div className="relative h-full text-white p-6 md:p-8 lg:p-10 flex flex-col justify-center">
+          {/* منطقة آمنة للنص */}
+          <div className="max-w-[70%] md:max-w-[55%] lg:max-w-[50%]">
+           
+          
+
+            {/* العنوان - الآن لن يُقصّ أبداً */}
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold leading-tight mb-3">
+              كل ما يحتاجه مطبخك
+              <span className="block text-orange-100">في متجر IBRO Kitchen</span>
+            </h1>
+
+            {/* نص ثانوي */}
+            <p className="text-sm md:text-base text-orange-50/95 mb-6">
+
+              أجهزة مطبخ كهربائية وأدوات طهي مختارة بعناية، مع جودة عالية
+              وتجربة شراء سهلة وسريعة من مكان واحد.
+            </p>
+
+            {/* الأزرار */}
+            <div className="flex flex-wrap items-center gap-4 mb-10">
+              <button
+                onClick={() =>
+                  document
+                    .getElementById('products-section')
+                    ?.scrollIntoView({ behavior: 'smooth' })
+                }
+                className="bg-white text-orange-600 hover:bg-orange-50 font-bold px-6 py-3 rounded-full
+                           text-sm md:text-base shadow-md shadow-black/20
+                           transition-transform hover:scale-[1.03] active:scale-95"
+              >
+                تسوّق الآن
+              </button>
+
+              
+            </div>
+          </div>
+
+          {/* دائرة الخصم في أسفل الكارد */}
+<div className="absolute bottom-6 left-6 md:left-10">
+  <div
+    className="
+      relative w-28 h-28 md:w-32 md:h-32 rounded-full
+      bg-white/95 text-orange-600 border-2 border-orange-400
+      flex flex-col items-center justify-center font-bold shadow-xl
+      hover:scale-105 transition-transform duration-200
+    "
   >
-    تصفح المنتجات
-  </button>
+    <span className="text-[11px] md:text-xs text-orange-500 tracking-wide">
+      خصم يصل حتى
+    </span>
+    <span className="text-3xl md:text-4xl leading-none">
+      70%
+    </span>
+    <span className="text-[10px] md:text-xs text-gray-500 font-normal mt-1">
+      على مختارات مختارة
+    </span>
+  </div>
 </div>
-)}
+
+        </div>
+      </div>
+    </div>
+  </div>
+
 
 </div>
-
-
-
 
 
 
@@ -235,7 +297,7 @@ const [showBrowseButton, setShowBrowseButton] = useState(true);
 
             <div className="flex items-center gap-4 mb-8">
               <div className="h-8 w-1.5 bg-orange-500 rounded-full"></div>
-              <h2 className="text-2xl md:text-3xl font-bold text-gray-900">منتج مميز</h2>
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900">الأكثر مبيعا </h2>
             </div>
             <FeaturedProduct
               product={featuredProduct}
