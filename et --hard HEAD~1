@@ -1,0 +1,58 @@
+[33ma819c94[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmaster[m[33m)[m improve customer table layout with hover actions for whatsapp and copy
+[33me2b2bf4[m improve table UI with whatsapp link and badge
+[33m3edc111[m[33m ([m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m build customer CRM page with filters, details modal and copy phone namber
+[33m12aabb8[m add search, reliability badges and status filter
+[33mc3bb49a[m add search filter by name and phone
+[33maab5eb9[m load customers from Supabase and display table
+[33mb06e66c[m add customer list management component
+[33mffc4f60[m redesign product modal
+[33m79e7761[m redesign hero layout and promo banner
+[33m506e491[m admin email auth + password reset
+[33medb2ff3[m harden admin auth with bcrypt hashing and Supabase validation
+[33mda7682a[m completely hide sidebar on mobile to prevent overlap
+[33m37626e5[m  resolve sidebar overlap on mobile devices
+[33m8bcafa3[m resolve dashboard data fetching issues
+[33m4dc4e90[m add responsive dashboard with stats, charts, and collapsible sidebar
+[33mf0a0254[m add secure admin auth with encrypted passwords and session management
+[33m5686ec3[m fix login navigation issue and revamp admin login UI
+[33m8f5f9f2[m  Resolve scroll position issue on mobile route transitions
+[33m2767b3f[m enhance featured section container and adjust page spacing
+[33m39b4b15[m modernize ProductGrid & FeaturedProduct designs, fix image aspect ratios
+[33m99eaa1c[m disable mobile sticky order button in featured product
+[33m79c1bfe[m improve hero and browse button on home
+[33mdc38346[m add pixel tracking to ProductDetail
+[33m1ef4312[m change variable OrderForm in ProductDetail
+[33mab9e597[m feat: enhance mobile UX with smart sticky button & quantity selector
+[33m9d3e689[m separate navigation and add-to-cart actions with stopPropagation
+[33m504007a[m finalize layout and image sizing improvements
+[33m58e8354[m solve image sizing issues in featured product card by using flexbox and absolute positioning
+[33m2c42bf7[m style(FeaturedProduct): refactor layout from grid to flex and adjust image sizing (WIP)
+[33m73115df[m restructure store to product landing page model & add router
+[33m342aa55[m optimize order modal for mobile with compact layout
+[33md3a9cda[m revamp FeaturedProduct with mobile-first design and sticky footer
+[33mf9ed6a3[m FB Pixel tracking for PageView & Purchase events
+[33mc37b2ae[m  add storefront and store-info tabs to admin dashboard
+[33m1fb4e45[m redesign header and tabs using glassmorphism
+[33m440d574[m improve orders table UI and add empty state
+[33m2bbef2d[m add dashboard stats and fix revenue calculation
+[33m4e9a914[m Add .gitignore
+[33m3329db5[m Remove .env and add to gitignore
+[33mf3b7670[m Update authentication page styling
+[33m1f92fae[m Add Facebook Pixel integration
+[33maa9a1a5[m integrate Facebook Pixel for conversion tracking
+[33m17367c2[m integrate Facebook Pixel for conversion tracking
+[33m7a45831[m feat: implement image upload via Supabase Storage to improve scalability
+[33mcd4d84a[m perf: optimize product fetching query and remove legacy Base64 image handling
+[33m52b94ab[m Merge branch 'master' of https://github.com/laidanimounir/IBRO_pack
+[33m8f8e66a[m Refactor order table: improved display and data binding
+[33mdd65b2a[m Update button label text
+[33m94c1365[m Refactor button display and improve UI
+[33m7167cc4[m Update button layout and appearance
+[33m0d79ba9[m Show OrderForm as modal when Add to Cart is clicked
+[33m6304b1d[m تحسين استعلام المنتجات وتسريع التحميل
+[33m0734867[m تحسين استعلام المنتجات وتسريع التحميل
+[33mc8197cd[m تحسين استعلام المنتجات وتسريع التحميل
+[33m9180ce2[m إضافة إعداد في vercel.json لدعم الروتات
+[33me2da665[m حذف app.tsx وإنشاء App.tsx بحرف كبير
+[33mc723477[m حذف pnpm-lock.yaml لتوافق النشر في Vercel
+[33m4890c5b[m أول رفع لكل ملفات المشروع IBRO pack
