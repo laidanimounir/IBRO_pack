@@ -2,12 +2,12 @@ import { createClient } from "@supabase/supabase-js";
 import { useEffect, useState, useRef } from "react";
 import type { Customer } from "../types/types";
 
-// إعداد Supabase
+// DB
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// دوال مساعدة للتصميم
+
 function getReliabilityClasses(isReliable: boolean, warnings: number) {
   if (!isReliable || warnings >= 3) return "bg-red-50 text-red-700 border border-red-200";
   if (warnings > 0) return "bg-amber-50 text-amber-700 border border-amber-200";
@@ -26,11 +26,12 @@ function getStatusDotColor(isReliable: boolean, warnings: number) {
   return "bg-emerald-500";
 }
 
-// مكون القائمة المنسدلة للسهم
+
 function CustomerDropdown({ customer, onDetailsClick }: { customer: Customer, onDetailsClick: (c: Customer) => void }) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -43,17 +44,17 @@ function CustomerDropdown({ customer, onDetailsClick }: { customer: Customer, on
 
   return (
     <div className="relative inline-block text-right mr-2" ref={dropdownRef}>
-      <button onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }} className="p-1 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
+      <button type="button" onClick={(e) => { e.stopPropagation(); setIsOpen(!isOpen); }} className="p-1 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors">
         <svg className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
       </button>
       {isOpen && (
         <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden origin-top-right animate-in fade-in zoom-in-95 duration-100">
           <div className="py-1">
-            <button className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors text-right" onClick={() => alert(`تعديل بيانات: ${customer.name} (قريباً)`)}>
+            <button type="button" className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-blue-600 transition-colors text-right" onClick={() => alert(`Editing: ${customer.name} (Coming Soon)`)}>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
               تعديل البيانات
             </button>
-            <button className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-orange-600 transition-colors text-right" onClick={() => { onDetailsClick(customer); setIsOpen(false); }}>
+            <button type="button" className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-orange-600 transition-colors text-right" onClick={() => { onDetailsClick(customer); setIsOpen(false); }}>
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
               عرض التفاصيل
             </button>
@@ -68,20 +69,34 @@ function CustomerDropdown({ customer, onDetailsClick }: { customer: Customer, on
   );
 }
 
+
 export function ManagementCustumers() {
+ 
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copyMessage, setCopyMessage] = useState<string | null>(null);
+  
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "reliable" | "warning" | "unreliable">("all");
+  
+  
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
-  // المتغيرات الجديدة للصفحات
+  
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
+  
+  const [deletePhone, setDeletePhone] = useState("");
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [foundCustomerToDelete, setFoundCustomerToDelete] = useState<Customer | null>(null);
+  const [isSearchingDelete, setIsSearchingDelete] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  
   useEffect(() => {
     const fetchCustomers = async () => {
       try {
@@ -100,6 +115,7 @@ export function ManagementCustumers() {
     fetchCustomers();
   }, []);
 
+  
   const filteredCustomers = customers.filter((c) => {
     if (statusFilter === "reliable" && (!c.isReliable || c.warnings > 0)) return false;
     if (statusFilter === "warning" && c.warnings === 0) return false;
@@ -110,26 +126,110 @@ export function ManagementCustumers() {
     return c.name?.toLowerCase().includes(term) || c.phone?.toLowerCase().includes(term);
   });
 
+  
   const totalPages = Math.ceil(filteredCustomers.length / rowsPerPage);
   const startIndex = (currentPage - 1) * rowsPerPage;
   const currentData = filteredCustomers.slice(startIndex, startIndex + rowsPerPage);
 
+  
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, statusFilter, rowsPerPage]);
 
+  
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     setCopyMessage(`تم نسخ ${label}`);
     setTimeout(() => setCopyMessage(null), 2000);
   };
 
-  // ✅ دالة التمرير السلس لقسم الحذف
+  
   const scrollToDelete = () => {
     const element = document.getElementById('delete-section');
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
+  };
+
+   
+  const handleSearchForDelete = async () => {
+      if (!deletePhone.trim()) return;
+      setIsSearchingDelete(true);
+      setDeleteError(null);
+      setFoundCustomerToDelete(null);
+
+      try {
+          
+          const localCustomer = customers.find(c => c.phone.includes(deletePhone.trim()));
+          
+          if (localCustomer) {
+              setFoundCustomerToDelete(localCustomer);
+          } else {
+             
+              const { data, error } = await supabase
+                  .from("Customers")
+                  .select("*")
+                  .eq("phone", deletePhone.trim())
+                  .maybeSingle();
+
+              if (error) throw error;
+              if (data) {
+                  setFoundCustomerToDelete(data as Customer);
+              } else {
+                  setDeleteError("الزبون غير متوفر في قاعدة البيانات");
+              }
+          }
+      } catch (err: any) {
+          setDeleteError("حدث خطأ أثناء البحث: " + err.message);
+      } finally {
+          setIsSearchingDelete(false);
+      }
+  };
+
+ 
+  const handleConfirmDelete = async () => {
+      if (!foundCustomerToDelete) return;
+      
+      
+      if (!window.confirm("هل أنت متأكد؟ سيتم حذف الزبون وجميع طلباته نهائياً.")) return;
+
+      setIsDeleting(true);
+
+      try {
+          
+          
+          const { error: ordersError } = await supabase
+              .from("Orders") 
+              .delete()
+              .eq("customerId", foundCustomerToDelete.id); 
+
+          if (ordersError) {
+              console.error("Orders delete failed:", ordersError);
+              throw new Error("فشل في حذف الطلبات المرتبطة");
+          }
+
+          
+          const { error: customerError } = await supabase
+              .from("Customers")
+              .delete()
+              .eq("id", foundCustomerToDelete.id);
+
+          if (customerError) throw customerError;
+
+          
+          setCustomers(prev => prev.filter(c => c.id !== foundCustomerToDelete.id));
+          setFoundCustomerToDelete(null);
+          setDeletePhone("");
+          setCopyMessage(" تم حذف الزبون وسجلاته بنجاح");
+          setTimeout(() => setCopyMessage(null), 3000);
+
+      } catch (err: any) {
+          console.error(err);
+          alert("فشل الحذف: " + err.message);
+          setDeleteError(err.message);
+      } finally {
+          setIsDeleting(false);
+      }
   };
 
   if (loading) return <div className="flex justify-center p-10 text-gray-500">جاري تحميل الزبائن...</div>;
@@ -138,6 +238,7 @@ export function ManagementCustumers() {
   return (
     <div className="space-y-6 p-6 bg-gray-50/50 min-h-screen">
       
+      
       {copyMessage && (
         <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[60] bg-gray-800 text-white px-6 py-3 rounded-full text-sm shadow-2xl animate-in fade-in slide-in-from-bottom-4 font-medium flex items-center gap-2">
           <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"/></svg>
@@ -145,7 +246,7 @@ export function ManagementCustumers() {
         </div>
       )}
 
-      {/* الرأس والعداد */}
+     
       <div className="flex flex-col gap-4">
           <div className="flex items-center justify-between">
              <div className="flex items-center gap-3">
@@ -158,8 +259,10 @@ export function ManagementCustumers() {
                 </div>
              </div>
              
-             {/* ✅ زر الانتقال السريع للحذف */}
+             
+
              <button 
+                type="button"
                 onClick={scrollToDelete}
                 className="flex items-center gap-2 px-4 py-2 bg-white border border-red-100 text-red-500 rounded-lg hover:bg-red-50 transition-colors shadow-sm text-sm font-medium"
              >
@@ -168,7 +271,8 @@ export function ManagementCustumers() {
              </button>
           </div>
 
-          {/* شريط الفلتر والتحكم في الصفوف */}
+          
+
           <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
             <div className="flex items-center gap-2 w-full md:w-auto">
                <span className="text-sm text-gray-500 whitespace-nowrap">عرض:</span>
@@ -213,7 +317,7 @@ export function ManagementCustumers() {
           </div>
       </div>
 
-      {/* الجدول */}
+      
       <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col h-full">
         <div className="overflow-x-auto">
           <table className="w-full text-right text-sm">
@@ -255,7 +359,7 @@ export function ManagementCustumers() {
                           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#25D366" className="grayscale group-hover/icon:grayscale-0 opacity-60 group-hover/icon:opacity-100 transition-all duration-200">
                             <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
                         </a>
-                        <button onClick={() => copyToClipboard(c.phone, "الرقم")} className="p-1 rounded-md hover:bg-gray-100 transition-all duration-200 group/icon">
+                        <button type="button" onClick={() => copyToClipboard(c.phone, "الرقم")} className="p-1 rounded-md hover:bg-gray-100 transition-all duration-200 group/icon">
                           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 group-hover/icon:text-blue-600 transition-colors duration-200">
                             <rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
                           </svg>
@@ -268,7 +372,7 @@ export function ManagementCustumers() {
                   <td className="p-4 text-center"><span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getReliabilityClasses(c.isReliable, c.warnings)}`}>{getReliabilityLabel(c.isReliable, c.warnings)}</span></td>
                   <td className="p-4 text-center">{c.warnings > 0 ? <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-100 text-red-600 text-xs font-bold">{c.warnings}</span> : <span className="text-gray-300">-</span>}</td>
                   <td className="p-4 max-w-[200px]"><div className="truncate text-gray-500 text-xs" title={c.address}>{c.address || "---"}</div></td>
-                  <td className="p-4 text-center"><button className="text-xs font-medium text-gray-500 hover:text-orange-600 px-3 py-1.5 rounded-lg transition-colors" onClick={() => { setSelectedCustomer(c); setIsDetailsOpen(true); }}>عرض التفاصيل</button></td>
+                  <td className="p-4 text-center"><button type="button" className="text-xs font-medium text-gray-500 hover:text-orange-600 px-3 py-1.5 rounded-lg transition-colors" onClick={() => { setSelectedCustomer(c); setIsDetailsOpen(true); }}>عرض التفاصيل</button></td>
                 </tr>
               ))}
             </tbody>
@@ -285,6 +389,7 @@ export function ManagementCustumers() {
 
                 <div className="flex items-center gap-2">
                     <button 
+                        type="button"
                         onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                         disabled={currentPage === 1}
                         className="p-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -295,6 +400,7 @@ export function ManagementCustumers() {
                     <span className="text-sm font-medium text-gray-700 px-2">صفحة {currentPage} من {totalPages}</span>
 
                     <button 
+                        type="button"
                         onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                         disabled={currentPage === totalPages}
                         className="p-2 rounded-lg bg-white border border-gray-200 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -306,16 +412,18 @@ export function ManagementCustumers() {
         )}
       </div>
 
-      {/* ✅ فاصل أنيق (Divider) */}
+      
       <div className="flex items-center gap-4 py-8">
           <div className="h-px flex-1 bg-gray-200"></div>
           <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">منطقة الإدارة</span>
           <div className="h-px flex-1 bg-gray-200"></div>
       </div>
 
-      {/* ✅ منطقة الحذف (تصميم مركز ومكثف) مع ID */}
+     
+
       <div id="delete-section" className="mb-16 max-w-lg mx-auto scroll-mt-10">
         <div className="bg-white border border-red-100 rounded-3xl p-8 shadow-xl shadow-red-50/50 text-center relative overflow-hidden">
+            
             
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-red-400 to-orange-400"></div>
 
@@ -333,33 +441,99 @@ export function ManagementCustumers() {
                         type="text" 
                         placeholder="0770..." 
                         className="w-full px-5 py-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:bg-white focus:border-red-400 focus:ring-0 outline-none transition-all text-center font-mono text-lg placeholder:text-gray-300"
+                        value={deletePhone}
+                        onChange={(e) => setDeletePhone(e.target.value)}
                     />
                     <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-gray-300 group-focus-within:text-red-400 transition-colors">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
                     </div>
                 </div>
                 
-                <button className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white py-3 rounded-xl font-bold shadow-lg shadow-red-200 transform active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-                    <span>بحث وحذف</span>
+                <button 
+                    type="button"
+                    onClick={handleSearchForDelete}
+                    disabled={isSearchingDelete}
+                    className="w-full bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white py-3 rounded-xl font-bold shadow-lg shadow-red-200 transform active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+                >
+                    {isSearchingDelete ? <span>جاري البحث...</span> : <span>بحث عن الزبون</span>}
                 </button>
             </div>
-
-            <div className="mt-6 pt-4 border-t border-gray-50">
-                <p className="text-xs text-gray-400 flex items-center justify-center gap-1">
-                    <svg className="w-3 h-3 text-red-400" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" /></svg>
-                    <span>انتبه: الحذف نهائي</span>
+            
+            {deleteError && (
+                <p className="mt-4 text-red-500 text-sm font-bold bg-red-50 p-2 rounded-lg animate-pulse">
+                     {deleteError}
                 </p>
-            </div>
+            )}
+
+            
+                        
+            {foundCustomerToDelete && (
+                <div className="mt-8 animate-in fade-in slide-in-from-top-6 duration-500">
+                    <div className="relative bg-white rounded-2xl border border-gray-100 shadow-xl shadow-gray-100/50 overflow-hidden">
+                        {/* Header Bar */}
+                        <div className={`h-2 w-full ${foundCustomerToDelete.isReliable && foundCustomerToDelete.warnings === 0 ? 'bg-emerald-500' : foundCustomerToDelete.warnings > 0 ? 'bg-amber-500' : 'bg-red-500'}`}></div>
+                        
+                        <div className="p-6">
+                            <div className="flex flex-col items-center text-center mb-6">
+                                <div className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl font-bold mb-3 ${foundCustomerToDelete.isReliable && foundCustomerToDelete.warnings === 0 ? 'bg-emerald-100 text-emerald-600' : foundCustomerToDelete.warnings > 0 ? 'bg-amber-100 text-amber-600' : 'bg-red-100 text-red-600'}`}>
+                                    {foundCustomerToDelete.name.charAt(0).toUpperCase()}
+                                </div>
+                                <h3 className="text-xl font-bold text-gray-800">{foundCustomerToDelete.name}</h3>
+                                <p className="text-gray-500 font-mono dir-ltr mt-1">{foundCustomerToDelete.phone}</p>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3 mb-6">
+                                <div className="bg-gray-50 p-3 rounded-xl text-center">
+                                    <span className="block text-xs text-gray-400 mb-1">الطلبات</span>
+                                    <span className="font-bold text-gray-800">{foundCustomerToDelete.totalOrders}</span>
+                                </div>
+                                <div className="bg-gray-50 p-3 rounded-xl text-center">
+                                    <span className="block text-xs text-gray-400 mb-1">الحالة</span>
+                                    <span className={`font-bold text-xs px-2 py-0.5 rounded-full ${getReliabilityClasses(foundCustomerToDelete.isReliable, foundCustomerToDelete.warnings)}`}>
+                                        {getReliabilityLabel(foundCustomerToDelete.isReliable, foundCustomerToDelete.warnings)}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="bg-red-50 border border-red-100 rounded-xl p-4 mb-6">
+                                <div className="flex items-start gap-3">
+                                    <svg className="w-5 h-5 text-red-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                    <p className="text-xs text-red-600 leading-relaxed text-right">
+                                        <b>تحذير:</b> أنت على وشك حذف هذا الزبون وجميع طلباته وسجلاته نهائياً. لا يمكن التراجع عن هذا الإجراء.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <button 
+                                type="button"
+                                onClick={handleConfirmDelete}
+                                disabled={isDeleting}
+                                className="w-full group bg-white border-2 border-red-500 text-red-500 hover:bg-red-500 hover:text-white py-3.5 rounded-xl font-bold transition-all duration-200 flex items-center justify-center gap-3"
+                            >
+                                {isDeleting ? (
+                                    <span className="loading loading-spinner loading-sm"></span>
+                                ) : (
+                                    <>
+                                        <span>تأكيد الحذف النهائي</span>
+                                        <svg className="w-5 h-5 transition-transform group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
         </div>
       </div>
 
-      {/* المودال (نفسه لم يتغير) */}
+      
       {isDetailsOpen && selectedCustomer && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/40 backdrop-blur-sm p-4 transition-opacity" onClick={() => setIsDetailsOpen(false)}>
           <div className="w-full max-w-sm bg-white rounded-2xl shadow-2xl overflow-hidden transform transition-all scale-100 border border-gray-100" onClick={(e) => e.stopPropagation()}>
             
             <div className="absolute top-3 left-3 z-10">
-              <button onClick={() => setIsDetailsOpen(false)} className="p-2 bg-white/80 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors shadow-sm border border-gray-100">
+              <button type="button" onClick={() => setIsDetailsOpen(false)} className="p-2 bg-white/80 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors shadow-sm border border-gray-100">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
               </button>
             </div>
@@ -407,7 +581,7 @@ export function ManagementCustumers() {
                     <p className="text-xs text-gray-400 mb-1">رقم الهاتف</p>
                     <p className="font-mono font-bold text-xl text-gray-800 dir-ltr">{selectedCustomer.phone}</p>
                   </div>
-                  <button onClick={() => copyToClipboard(selectedCustomer.phone, "الرقم")} className="text-sm text-orange-600 font-bold hover:bg-orange-50 px-3 py-1.5 rounded-lg transition-colors border border-transparent hover:border-orange-100">
+                  <button type="button" onClick={() => copyToClipboard(selectedCustomer.phone, "الرقم")} className="text-sm text-orange-600 font-bold hover:bg-orange-50 px-3 py-1.5 rounded-lg transition-colors border border-transparent hover:border-orange-100">
                     نسخ
                   </button>
                 </div>
