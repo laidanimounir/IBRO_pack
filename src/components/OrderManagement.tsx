@@ -531,9 +531,8 @@ useEffect(() => {
 
 
 
-{/* قسم الإحصائيات الجديد */}
+
 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-   {/* بطاقة الطلبات الجديدة */}
     <Card className="bg-gradient-to-br from-orange-50 via-orange-50/50 to-white border-orange-200 shadow-md hover:shadow-lg transition-shadow">
         <CardContent className="p-6 flex items-center justify-between">
             <div>
@@ -546,7 +545,7 @@ useEffect(() => {
         </CardContent>
     </Card>
 
-    {/* بطاقة المبيعات */}
+    
     <Card className="bg-gradient-to-br from-green-50 via-green-50/50 to-white border-green-200 shadow-md hover:shadow-lg transition-shadow">
         <CardContent className="p-6 flex items-center justify-between">
             <div>
@@ -561,7 +560,7 @@ useEffect(() => {
         </CardContent>
     </Card>
 
-    {/* بطاقة إجمالي الطلبات */}
+    
     <Card className="bg-gradient-to-br from-blue-50 via-blue-50/50 to-white border-blue-200 shadow-md hover:shadow-lg transition-shadow">
         <CardContent className="p-6 flex items-center justify-between">
             <div>
@@ -585,16 +584,16 @@ useEffect(() => {
 
 
           <div className="flex flex-col md:flex-row items-center gap-3 justify-between">
-  {/* معلومات مختصرة عن النتائج */}
+  
   <div className="w-full md:w-auto text-sm text-gray-500 text-right md:text-left">
     تظهر الآن {filteredOrders.length} طلبات من أصل {orders.length}
   </div>
 
-  {/* شريط البحث + الفلاتر */}
+  
   <div className="flex items-center gap-2 w-full md:w-auto">
-    {/* فلتر الحالة */}
+   
    <div className="flex flex-col md:flex-row items-center gap-3 justify-between mt-2 mb-3">
-  {/* يمين: حقل البحث */}
+  
   <div className="relative w-full md:w-[320px]">
     <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
     <Input
@@ -605,7 +604,7 @@ useEffect(() => {
     />
   </div>
 
-  {/* يسار: فلتر الحالة + نص صغير */}
+  
   <div className="flex items-center gap-2 text-xs text-gray-500">
     
     <select
@@ -660,7 +659,7 @@ useEffect(() => {
     </TableHeader>
     <TableBody>
       {filteredOrders.length === 0 ? (
-        /* الحالة الفارغة (Empty State) */
+        
         <TableRow>
           <TableCell colSpan={7} className="h-[400px] text-center align-middle">
             <div className="flex flex-col items-center justify-center text-gray-400 animate-in fade-in zoom-in duration-300">
@@ -677,7 +676,7 @@ useEffect(() => {
           </TableCell>
         </TableRow>
       ) : (
-        /* عرض الطلبات */
+        
         filteredOrders.map(order => {
           const customerInfo = getCustomerInfo(order.phone);
           return (
@@ -686,7 +685,7 @@ useEffect(() => {
     className="group hover:bg-orange-50/60 cursor-pointer transition-all duration-150 border-b border-gray-100 last:border-0"
     onClick={() => setSelectedOrder(order)}
 >
-           {/* عمود الإجراءات */}
+           
 <TableCell className="py-3">
   <div className="flex flex-wrap gap-1.5 justify-start md:justify-center">
     {order.status === 'pending' && (
@@ -774,7 +773,7 @@ useEffect(() => {
 </TableCell>
 
 
-              {/* عمود الحالة */}
+             
               <TableCell>
                 <div className="space-y-1">
                   {getStatusBadge(order.status)}
@@ -786,7 +785,7 @@ useEffect(() => {
                 </div>
               </TableCell>
 
-              {/* بقية الأعمدة */}
+              
               <TableCell className="font-mono text-gray-700 font-medium">{order.totalAmount?.toLocaleString('ar-DZ')} دج</TableCell>
               <TableCell className="text-sm text-gray-600 truncate max-w-[150px]" title={order.address}>{order.address}</TableCell>
               
@@ -799,7 +798,7 @@ useEffect(() => {
               </TableCell>
               
               <TableCell className="font-medium text-gray-900">
-                {/* هنا عدلتها لتظهر الاسم بشكل صحيح بدلاً من البحث بالـ ID */}
+               
                 {getCustomerInfoById(order. customerId)?.name || "اسم غير متوفر"}
               </TableCell>
             </TableRow>
@@ -809,7 +808,7 @@ useEffect(() => {
     </TableBody>
   </Table>
 </div>
-{/* --- نهاية كود الجدول الجديد --- */}
+
 
 
 
@@ -1021,7 +1020,7 @@ useEffect(() => {
           <AlertDialogFooter>
             <AlertDialogCancel>إلغاء</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
-              تأكيد الحذف
+              تـأكيد الحذف
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
