@@ -837,130 +837,127 @@ useEffect(() => {
 
          
 
-          {selectedOrder && (
-            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-10">
-              <Card className="w-full max-w-3xl max-h-[90vh] overflow-y-auto shadow-2xl animate-in fade-in zoom-in">
-                <CardHeader className="bg-gradient-to-r from-orange-500 to-amber-500 text-white relative">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute left-4 top-4 text-white hover:bg-white/20"
-                    onClick={() => setSelectedOrder(null)}
-                  >
-                    <X className="h-5 w-5" />
-                  </Button>
-                  <CardTitle className="text-2xl text-right pr-12">تفاصيل الطلب #{selectedOrder.id}</CardTitle>
-                </CardHeader>
-                <CardContent className="p-6 space-y-6">
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="bg-gradient-to-br from-blue-50 to-blue-100 p-4 rounded-lg text-right">
-                      <p className="mb-1 text-sm text-blue-600 font-semibold">اسم الزبون</p>
-                      <p className="text-lg font-bold text-gray-900">اسم</p>
-                    </div>
-                    <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-lg text-right">
-                      <p className="mb-1 text-sm text-green-600 font-semibold">الهاتف</p>
-                      <p className="text-lg font-bold text-gray-900">{selectedOrder.phone}</p>
-                    </div>
-                    <div className="bg-gradient-to-br from-purple-50 to-purple-100 p-4 rounded-lg text-right md:col-span-2">
-                      <p className="mb-1 text-sm text-purple-600 font-semibold">العنوان</p>
-                      <p className="text-lg font-bold text-gray-900">{selectedOrder.address}</p>
-                    </div>
-                  </div>
+{selectedOrder && (
+  <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4 z-40">
+    <Card className="w-full max-w-xl max-h-[80vh] overflow-y-auto shadow-xl rounded-2xl">
+      
+      <CardHeader className="border-b border-gray-200 bg-white relative">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute left-3 top-3 text-gray-500 hover:text-red-600 hover:bg-red-50"
+          onClick={() => setSelectedOrder(null)}
+        >
+          <X className="h-5 w-5" />
+        </Button>
+        <div className="text-right pr-10">
+          <CardTitle className="text-xl font-bold text-gray-800">
+            تفاصيل الطلب
+          </CardTitle>
+          <p className="text-xs text-gray-400 mt-1 font-mono truncate">
+            #{selectedOrder.id}
+          </p>
+        </div>
+      </CardHeader>
 
-                  <div className="text-right">
-                    <h3 className="mb-3 text-lg font-bold flex items-center justify-end gap-2 text-gray-900">
-                      <span>المنتجات المطلوبة</span>
-                      <Package className="h-5 w-5 text-orange-600" />
-                    </h3>
-                    <div className="space-y-2">
-                      {orderItems.length === 0 ? (
-                        <div className="text-center text-gray-500">لا يوجد منتجات لهذا الطلب</div>
-                      ) : (
-                        orderItems.map((item, idx) => (
-                          <div
-                            key={idx}
-                            className="bg-gradient-to-r from-gray-50 to-gray-100 p-4 rounded-lg flex justify-between items-center hover:shadow-md transition-shadow"
-                          >
-                            <div className="text-left">
-                              <span className="text-xl font-bold text-green-600">
-                                {(item.price * item.quantity).toLocaleString('ar-DZ')} دج
-                              </span>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-gray-900 font-semibold">{item.productName}</p>
-                              <p className="text-sm text-gray-600">
-                                الكمية: {item.quantity} × {item.price.toLocaleString('ar-DZ')} دج
-                              </p>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="bg-gradient-to-r from-green-500 to-emerald-500 p-5 rounded-lg text-white">
-                    <div className="flex justify-between items-center">
-                      <span className="text-3xl font-bold">
-                        {selectedOrder.totalAmount.toLocaleString('ar-DZ')} دج
-                      </span>
-                      <span className="text-xl font-semibold">المجموع الإجمالي</span>
-                    </div>
-                  </div>
-
-                  {(() => {
-                    const customerInfo = getCustomerInfo(selectedOrder.phone);
-                    if (customerInfo) {
-                      return (
-                        <div className="bg-gradient-to-br from-orange-50 to-amber-50 p-5 rounded-lg border-2 border-orange-200">
-                          <h3 className="mb-3 text-lg font-bold text-gray-900 flex items-center justify-end gap-2 text-right">
-                            <span>معلومات الزبون</span>
-                            <ThumbsUp className="h-5 w-5 text-orange-600" />
-                          </h3>
-                          <div className="grid grid-cols-2 gap-4 text-right">
-                            <div className="bg-white/70 p-3 rounded">
-                              <p className="text-sm text-gray-600">إجمالي الطلبات</p>
-                              <p className="text-2xl font-bold text-orange-600">{customerInfo.totalOrders}</p>
-                            </div>
-                            <div className="bg-white/70 p-3 rounded">
-                              <p className="text-sm text-gray-600">الطلبات المستلمة</p>
-                              <p className="text-2xl font-bold text-green-600">{customerInfo.deliveredOrders}</p>
-                            </div>
-                            <div className="col-span-2 flex justify-end">
-                              {customerInfo.isReliable ? (
-                                <Badge className="bg-green-600 text-lg px-4 py-2">
-                                  <ThumbsUp className="ml-2 h-5 w-5" />
-                                  زبون جاد وموثوق
-                                </Badge>
-                              ) : customerInfo.warnings > 0 ? (
-                                <Badge className="bg-red-600 text-lg px-4 py-2">
-                                  <AlertTriangle className="ml-2 h-5 w-5" />
-                                  تحذير: لا يستلم الطلبات ({customerInfo.warnings})
-                                </Badge>
-                              ) : (
-                                <Badge className="bg-gray-500 text-lg px-4 py-2">
-                                  زبون جديد
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    }
-                    return null;
-                  })()}
-
-                  <Button
-                    onClick={() => setSelectedOrder(null)}
-                    className="w-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white text-lg py-6"
-                  >
-                    إغلاق
-                  </Button>
+      <CardContent className="p-4 space-y-4 bg-gray-50">
+        
+        <div className="grid md:grid-cols-2 gap-3">
+          <div className="bg-white p-3 rounded-xl border border-gray-100 text-right">
+            <p className="mb-1 text-xs text-gray-500 font-medium">اسم الزبون</p>
+            <p className="text-sm font-semibold text-gray-900">
+              {selectedOrder.customerName || 'اسم غير متوفر'}
+            </p>
+          </div>
+          <div className="bg-white p-3 rounded-xl border border-gray-100 text-right">
+            <p className="mb-1 text-xs text-gray-500 font-medium">الهاتف</p>
+            <p className="text-sm font-semibold text-gray-900">
+              {selectedOrder.phone}
+            </p>
+          </div>
+          <div className="bg-white p-3 rounded-xl border border-gray-100 text-right md:col-span-2">
+            <p className="mb-1 text-xs text-gray-500 font-medium">العنوان</p>
+            <p className="text-sm font-semibold text-gray-900">
+              {selectedOrder.address}
+            </p>
+          </div>
+        </div>
 
         
-                </CardContent>
-              </Card>
+        <div className="bg-white p-3 rounded-xl border border-gray-100">
+          <h3 className="mb-2 text-sm font-bold flex items-center justify-end gap-2 text-gray-900">
+            <span>المنتجات المطلوبة</span>
+            <Package className="h-4 w-4 text-orange-500" />
+          </h3>
+
+          {orderItems.length === 0 ? (
+            <div className="text-center text-gray-500 text-xs">
+              لا يوجد منتجات لهذا الطلب
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {orderItems.map((item, idx) => (
+                <div
+                  key={idx}
+                  className="bg-gray-50 p-2.5 rounded-lg flex justify-between items-center"
+                >
+                  <div className="text-left">
+                    <span className="text-sm font-bold text-green-600">
+                      {(item.price * item.quantity).toLocaleString('ar-DZ')} دج
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-gray-900">
+                      {item.productName}
+                    </p>
+                    <p className="text-xs text-gray-600">
+                      الكمية: {item.quantity} × {item.price.toLocaleString('ar-DZ')} دج
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
+        </div>
+
+        
+        <div className="bg-white p-3 rounded-xl border border-gray-100">
+          <div className="flex justify-between items-center">
+            <span className="text-xl font-extrabold text-green-600">
+              {selectedOrder.totalAmount.toLocaleString('ar-DZ')} دج
+            </span>
+            <span className="text-xs font-semibold text-gray-700">
+              المجموع الإجمالي
+            </span>
+          </div>
+        </div>
+
+        
+        {(() => {
+          const customerInfo = getCustomerInfo(selectedOrder.phone);
+          if (!customerInfo) return null;
+
+          return (
+            <div className="flex justify-between items-center text-[11px] text-gray-500 px-1">
+              <span>إجمالي الطلبات: {customerInfo.totalOrders}</span>
+              <span>الطلبات المستلمة: {customerInfo.deliveredOrders}</span>
+            </div>
+          );
+        })()}
+
+        
+        <Button
+          onClick={() => setSelectedOrder(null)}
+          className="w-full mt-1 bg-orange-500 hover:bg-orange-600 text-white text-sm py-2.5 rounded-xl"
+        >
+          إغلاق
+        </Button>
+      </CardContent>
+    </Card>
+  </div>
+)}
+
+
 
 
 
