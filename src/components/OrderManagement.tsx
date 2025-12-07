@@ -49,6 +49,9 @@ export default function OrderManagement() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [orderToProcess, setOrderToProcess] = useState<Order | null>(null);
+
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'accepted' | 'shipped' | 'delivered' | 'rejected'>('all');
+
   
 const [page, setPage] = useState(1);
 const pageSize = 10;
@@ -57,12 +60,12 @@ const getCustomerInfoById = (customerId) => {
   return customers.find(c => c.id === customerId);
 };
 
-// دالة جلب الطلبات فقط هي التي تستعمل التقسيم
+
 const loadOrders = async () => {
   const { data, error } = await supabase
     .from('Orders')
     .select('*')
-    .range((page - 1) * pageSize, page * pageSize - 1); // تقسيـم فقط للطلبات
+    .range((page - 1) * pageSize, page * pageSize - 1); 
   if (error) {
     toast.error('فشل تحميل الطلبات');
     setOrders([]);
@@ -71,9 +74,9 @@ const loadOrders = async () => {
   }
 };
 
-// تحميل جميع العملاء دفعة واحدة (بدون تقسيم)
+
 const loadCustomers = async () => {
-  const { data, error } = await supabase.from('Customers').select('*'); // جلب كامل للعملاء
+  const { data, error } = await supabase.from('Customers').select('*'); 
   if (error) {
     toast.error('فشل تحميل العملاء');
     setCustomers([]);
@@ -85,7 +88,7 @@ const loadCustomers = async () => {
 useEffect(() => {
   loadOrders();
   loadCustomers();
-}, [page]); // يعتمد على تغيير الصفحة لجلب الطلبات فقط
+}, [page]); 
 
 
   useEffect(() => {
@@ -108,65 +111,113 @@ useEffect(() => {
     }
   }, [selectedOrder]);
 
-  const updateOrder = async (updatedOrder: Partial<Order>, orderId: string) => {
-    const { error } = await supabase.from('Orders').update(updatedOrder).eq('id', orderId);
-    if (error) {
-      toast.error('فشل تحديث الحالة');
-    } else {
-      toast.success('تم تحديث حالة الطلب');
-      const { data } = await supabase.from('Orders').select('*');
-      setOrders(data ?? []);
-    }
-  };
 
- const deleteOrder = async (orderId: string) => {
-  await supabase.from('OrderItems').delete().eq('orderId', orderId);
-  const { error } = await supabase.from('Orders').delete().eq('id', orderId);
+const updateOrder = async (
+  updatedOrder: Partial<Order>,
+  orderId: string
+): Promise<boolean> => {
+  const { error } = await supabase
+    .from('Orders')
+    .update(updatedOrder)
+    .eq('id', orderId);
+
   if (error) {
-    
+    toast.error('فشل تحديث حالة الطلب');
+    return false; 
+  }
+
+  await loadOrders();
+  return true; 
+};
+
+
+
+
+
+
+const deleteOrder = async (orderId: string) => {
+  
+  const { error: itemsError } = await supabase
+    .from('OrderItems')
+    .delete()
+    .eq('orderId', orderId);
+
+  if (itemsError) {
+    toast.error('فشل حذف منتجات الطلب');
+    return;
+  }
+
+  
+  const { error: orderError } = await supabase
+    .from('Orders')
+    .delete()
+    .eq('id', orderId);
+
+  if (orderError) {
     toast.error('فشل حذف الطلب');
+    return;
+  }
+
+  
+  setSelectedOrder(null);
+  setOrders(prev => prev.filter(o => o.id !== orderId));
+
+  toast.success('تم حذف الطلب بنجاح');
+};
+
+
+
+
+ 
+const updateCustomer = async (phone: string, orderStatus: 'delivered' | 'not_delivered') => {
+  
+  const { data: existingCustomer, error: fetchError } = await supabase
+    .from('Customers')
+    .select('*')
+    .eq('phone', phone)
+    .single();
+
+  if (fetchError || !existingCustomer) {
+    toast.error('فشل في العثور على الزبون');
+    return;
+  }
+
+  
+  const currentWarnings = existingCustomer.warnings ?? 0;
+  const currentDelivered = existingCustomer.deliveredOrders ?? 0;
+  const currentTotalOrders = existingCustomer.totalOrders ?? 0;
+
+  
+  const updatedWarnings =
+    orderStatus === 'not_delivered' ? currentWarnings + 1 : currentWarnings;
+
+  const updatedDeliveredOrders =
+    orderStatus === 'delivered' ? currentDelivered + 1 : currentDelivered;
+
+  const updatedTotalOrders = currentTotalOrders;
+
+  
+  const updatedIsReliable = updatedDeliveredOrders >= 3;
+
+  const { error: updateError } = await supabase
+    .from('Customers')
+    .update({
+      totalOrders: updatedTotalOrders,
+      deliveredOrders: updatedDeliveredOrders,
+      isReliable: updatedIsReliable,
+      warnings: updatedWarnings,
+    })
+    .eq('phone', phone);
+
+  if (updateError) {
+    toast.error('فشل تحديث بيانات الزبون');
   } else {
-    await supabase.from('Customers').delete().eq('id', orderId);
-    setSelectedOrder(null);
-    // التحديث المحلي الأفضل:
-    setOrders(orders => orders.filter(o => o.id !== orderId));
     
-    toast.success('تم حذف الطلب بنجاح');
-    // أو إعادة تحميل بالتصفح لو أردت التأكد دائماً من الترتيب:
-    // await loadOrders();
+   
+    await loadCustomers();
   }
 };
 
-  const updateCustomer = async (phone: string, orderStatus: 'delivered' | 'not_delivered') => {
-    const { data: existingCustomer } = await supabase
-      .from('Customers')
-      .select('*')
-      .eq('phone', phone)
-      .single();
-
-    if (existingCustomer) {
-      const updatedTotalOrders = orderStatus === 'delivered'
-  ? existingCustomer.totalOrders + 1
-  : existingCustomer.totalOrders;
-      const updatedWarnings = orderStatus === 'not_delivered' ? existingCustomer.warnings + 1 : existingCustomer.warning;
-      const updatedDeliveredOrders = orderStatus === 'delivered' ? existingCustomer.deliveredOrders + 1 : existingCustomer.deliveredOrders;
-      const updatedReliable = orderStatus === 'delivered' ? updatedDeliveredOrders >= 3 : existingCustomer.isReable;
-
-      const { error } = await supabase.from('Customers').update({
-        totalOrders:  updatedTotalOrders,
-        deliveredOrders: updatedDeliveredOrders,
-        isReliable: updatedReliable,
-        warnings: updatedWarnings,
-      }).eq('phone', phone);
-
-      if (!error) {
-        toast.success('تم تحديث بيانات الزبون');
-      }
-    }
-
-    const { data } = await supabase.from('Customers').select('*');
-    setCustomers(data ?? []);
-  };
 
   const handlePrintInvoice = (order: Order) => {
     const printWindow = window.open('', '', 'width=800,height=600');
@@ -301,27 +352,27 @@ const getStatusBadge = (status: Order['status']) => {
   const statusConfig = {
     pending: { 
       label: 'قيد الانتظار', 
-      // أصفر دافئ مع نص بني غامق (أشيك وأوضح)
+      
       className: 'bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100' 
     },
     accepted: { 
       label: 'مقبول', 
-      // أزرق سماوي فاتح (يدل على الانطلاق)
+     
       className: 'bg-sky-100 text-sky-700 border-sky-200 hover:bg-sky-100' 
     },
     rejected: { 
       label: 'مرفوض', 
-      // أحمر وردي فاتح (تنبيه لطيف)
+      
       className: 'bg-red-100 text-red-700 border-red-200 hover:bg-red-100' 
     },
     shipped: { 
       label: 'تم الإرسال', 
-      // بنفسجي فاتح (لون مميز لمرحلة الشحن)
+     
       className: 'bg-violet-100 text-violet-700 border-violet-200 hover:bg-violet-100' 
     },
     delivered: { 
       label: 'تم التسليم', 
-      // أخضر زمردي (يدل على النجاح التام)
+      
       className: 'bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100' 
     }
   };
@@ -329,7 +380,7 @@ const getStatusBadge = (status: Order['status']) => {
   const config = statusConfig[status] ?? { label: 'غير معروف', className: 'bg-gray-100 text-gray-700' };
   
   return (
-    // استخدمنا variant="outline" ليعطي إطاراً خفيفاً مع الخلفية الفاتحة
+
     <Badge variant="outline" className={`${config.className} px-3 py-1 text-xs font-bold shadow-sm border`}>
       {config.label}
     </Badge>
@@ -345,12 +396,19 @@ const getStatusBadge = (status: Order['status']) => {
     return customers.find(c => c.phone === phone);
   };
 
-  const filteredOrders = orders.filter(order =>
+  const filteredOrders = orders.filter(order => {
+  const matchesSearch =
     (order.customerName && order.customerName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (order.phone && order.phone.includes(searchTerm))
-  );
+    (order.phone && order.phone.includes(searchTerm));
 
-  // إجراءات الطلب
+  const matchesStatus =
+    statusFilter === 'all' || order.status === statusFilter;
+
+  return matchesSearch && matchesStatus;
+});
+
+
+ 
   const handleAccept = (order: Order) => {
     console.log("قبول الطلب", order);
     setOrderToProcess(order);
@@ -391,12 +449,26 @@ const getStatusBadge = (status: Order['status']) => {
     toast.success('تم تحديث حالة الطلب');
   };
 
-  const handleDeliver = async (order: Order) => {
-    console.log("تسليم الطلب", order);
-    await updateOrder({ status: 'delivered', updatedAt: new Date().toISOString() }, order.id);
-    await updateCustomer(order.phone, 'delivered');
-    toast.success('تم تسليم الطلب بنجاح');
-  };
+
+const handleDeliver = async (order: Order) => {
+  console.log("تسليم الطلب", order);
+
+ 
+  const ok = await updateOrder(
+    { status: 'delivered', updatedAt: new Date().toISOString() },
+    order.id
+  );
+
+  
+  if (!ok) return;
+
+  
+  await updateCustomer(order.phone, 'delivered');
+
+  toast.success('تم تسليم الطلب بنجاح');
+};
+
+
 
   const handleNotDelivered = async (order: Order) => {
     console.log("سجل لم يستلم", order);
@@ -422,7 +494,7 @@ const getStatusBadge = (status: Order['status']) => {
 const stats = {
     totalOrders: orders.length,
     pendingOrders: orders.filter(o => o.status === 'pending').length,
-    // حساب المبيعات للطلبات المسلمة فقط
+   
     totalRevenue: orders
         .filter(o => o.status === 'delivered')
         .reduce((acc, curr) => acc + (curr.totalAmount || 0), 0)
@@ -432,7 +504,7 @@ const [totalRevenue, setTotalRevenue] = useState(0);
 
 
 const calculateTotalRevenue = async () => {
-  // نطلب كل الطلبات المسلمة "فقط" لحساب مجموعها
+ 
   const { data, error } = await supabase
     .from('Orders')
     .select('totalAmount')
@@ -444,11 +516,11 @@ const calculateTotalRevenue = async () => {
   }
 };
 
-// استدعِها عند تحميل الصفحة
+
 useEffect(() => {
   loadOrders();
   loadCustomers();
-  calculateTotalRevenue(); // <--- هنا
+  calculateTotalRevenue(); 
 }, [page]);
 
 
@@ -461,73 +533,124 @@ useEffect(() => {
 
 {/* قسم الإحصائيات الجديد */}
 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-    {/* بطاقة الطلبات الجديدة */}
-    <Card className="bg-gradient-to-br from-orange-50 to-white border-orange-100 shadow-sm">
+   {/* بطاقة الطلبات الجديدة */}
+    <Card className="bg-gradient-to-br from-orange-50 via-orange-50/50 to-white border-orange-200 shadow-md hover:shadow-lg transition-shadow">
         <CardContent className="p-6 flex items-center justify-between">
             <div>
-                <p className="text-sm font-medium text-gray-500 text-right">طلبات جديدة</p>
-                <h3 className="text-3xl font-bold text-orange-600 mt-2">{stats.pendingOrders}</h3>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider text-right mb-2">طلبات جديدة</p>
+                <h3 className="text-4xl font-extrabold text-orange-600">{stats.pendingOrders}</h3>
             </div>
-            <div className="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center">
-                <AlertTriangle className="h-6 w-6 text-orange-600" />
+            <div className="h-14 w-14 rounded-2xl bg-orange-100 flex items-center justify-center ring-4 ring-orange-50">
+                <AlertTriangle className="h-7 w-7 text-orange-600" />
             </div>
         </CardContent>
     </Card>
 
     {/* بطاقة المبيعات */}
-    <Card className="bg-gradient-to-br from-green-50 to-white border-green-100 shadow-sm">
+    <Card className="bg-gradient-to-br from-green-50 via-green-50/50 to-white border-green-200 shadow-md hover:shadow-lg transition-shadow">
         <CardContent className="p-6 flex items-center justify-between">
             <div>
-                <p className="text-sm font-medium text-gray-500 text-right">إجمالي المبيعات</p>
-                <h3 className="text-3xl font-bold text-green-600 mt-2">
-                    {stats.totalRevenue.toLocaleString('ar-DZ')} <span className="text-sm">دج</span>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider text-right mb-2">إجمالي المبيعات</p>
+                <h3 className="text-4xl font-extrabold text-green-600">
+                    {totalRevenue.toLocaleString('ar-DZ')} <span className="text-base font-semibold">دج</span>
                 </h3>
             </div>
-            <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
-                <CheckCircle className="h-6 w-6 text-green-600" />
+            <div className="h-14 w-14 rounded-2xl bg-green-100 flex items-center justify-center ring-4 ring-green-50">
+                <CheckCircle className="h-7 w-7 text-green-600" />
             </div>
         </CardContent>
     </Card>
 
     {/* بطاقة إجمالي الطلبات */}
-    <Card className="bg-gradient-to-br from-blue-50 to-white border-blue-100 shadow-sm">
+    <Card className="bg-gradient-to-br from-blue-50 via-blue-50/50 to-white border-blue-200 shadow-md hover:shadow-lg transition-shadow">
         <CardContent className="p-6 flex items-center justify-between">
             <div>
-                <p className="text-sm font-medium text-gray-500 text-right">كل الطلبات</p>
-                <h3 className="text-3xl font-bold text-blue-600 mt-2">{stats.totalOrders}</h3>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider text-right mb-2">كل الطلبات</p>
+                <h3 className="text-4xl font-extrabold text-blue-600">{stats.totalOrders}</h3>
             </div>
-            <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
-                <Package className="h-6 w-6 text-blue-600" />
+            <div className="h-14 w-14 rounded-2xl bg-blue-100 flex items-center justify-center ring-4 ring-blue-50">
+                <Package className="h-7 w-7 text-blue-600" />
             </div>
         </CardContent>
     </Card>
 </div>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">إدارة الطلبات</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex gap-3">
-            <div className="flex-1 relative">
-              <Search className="absolute right-3 top-3 h-5 w-5 text-gray-400" />
-              <Input
-                placeholder="ابحث بالاسم أو رقم الهاتف..."
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                className="pr-10 text-right"
-              />
-            </div>
-          </div>
+
+      <Card className="shadow-lg border-gray-200">
+    <CardHeader className="border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+        <CardTitle className="text-2xl font-bold text-gray-800">إدارة الطلبات</CardTitle>
+    </CardHeader>
+    <CardContent className="space-y-6 p-6">
+
+          
+
+
+          <div className="flex flex-col md:flex-row items-center gap-3 justify-between">
+  {/* معلومات مختصرة عن النتائج */}
+  <div className="w-full md:w-auto text-sm text-gray-500 text-right md:text-left">
+    تظهر الآن {filteredOrders.length} طلبات من أصل {orders.length}
+  </div>
+
+  {/* شريط البحث + الفلاتر */}
+  <div className="flex items-center gap-2 w-full md:w-auto">
+    {/* فلتر الحالة */}
+   <div className="flex flex-col md:flex-row items-center gap-3 justify-between mt-2 mb-3">
+  {/* يمين: حقل البحث */}
+  <div className="relative w-full md:w-[320px]">
+    <Search className="absolute right-3 top-2.5 h-4 w-4 text-gray-400" />
+    <Input
+      placeholder="ابحث بالاسم أو رقم الهاتف..."
+      value={searchTerm}
+      onChange={e => setSearchTerm(e.target.value)}
+      className="pr-9 h-9 text-right text-sm rounded-full border-gray-300 focus:ring-2 focus:ring-orange-300"
+    />
+  </div>
+
+  {/* يسار: فلتر الحالة + نص صغير */}
+  <div className="flex items-center gap-2 text-xs text-gray-500">
+    
+    <select
+      className="border border-gray-300 rounded-full bg-white px-3 py-1.5 text-xs text-right focus:outline-none focus:ring-2 focus:ring-orange-300"
+      value={statusFilter}
+      onChange={e => setStatusFilter(e.target.value as any)}
+    >
+      <option value="all">كل الحالات</option>
+      <option value="pending">قيد الانتظار</option>
+      <option value="accepted">مقبول</option>
+      <option value="shipped">تم الإرسال</option>
+      <option value="delivered">تم التسليم</option>
+      <option value="rejected">مرفوض</option>
+    </select>
+  </div>
+</div>
+
+
+    {/* زر إعادة التعيين */}
+<Button
+  type="button"
+  variant="outline"
+  className="shrink-0 text-xs md:text-sm px-4 h-9 rounded-full border-gray-300 text-gray-600 
+             hover:border-orange-400 hover:text-orange-600 hover:bg-orange-50 transition-colors"
+  onClick={() => {
+    setSearchTerm('');
+    setStatusFilter('all');
+  }}
+>
+  عودة للوضع الافتراضي
+</Button>
+
+
+  </div>
+</div>
 
 
          
 
-{/* --- بداية كود الجدول الجديد --- */}
-<div className="border rounded-xl overflow-hidden shadow-sm bg-white ring-1 ring-gray-200">
+
+<div className="border-2 border-gray-200 rounded-2xl overflow-hidden shadow-md bg-white">
   <Table>
-    <TableHeader className="bg-gray-50/80 border-b border-gray-200">
+    <TableHeader className="bg-gradient-to-r from-gray-100 to-gray-50 border-b-2 border-gray-200">
       <TableRow className="hover:bg-transparent">
-        <TableHead className="text-right font-bold text-gray-700 py-4 w-[220px]">الإجراءات</TableHead>
+        <TableHead className="text-right font-bold text-gray-700 py-4 w-[260px]">الإجراءات</TableHead>
         <TableHead className="text-right font-bold text-gray-700">الحالة</TableHead>
         <TableHead className="text-right font-bold text-gray-700">المبلغ</TableHead>
         <TableHead className="text-right font-bold text-gray-700">العنوان</TableHead>
@@ -559,34 +682,97 @@ useEffect(() => {
           const customerInfo = getCustomerInfo(order.phone);
           return (
             <TableRow
-              key={order.id}
-              className="group hover:bg-orange-50/40 cursor-pointer transition-all border-b border-gray-100 last:border-0"
-              onClick={() => setSelectedOrder(order)}
-            >
-              {/* عمود الإجراءات */}
-              <TableCell className="py-3">
-                 <div className="flex gap-2 flex-wrap opacity-90 group-hover:opacity-100 transition-opacity">
-                    {order.status === 'pending' && (
-                      <>
-                        <Button size="sm" className="bg-green-600 hover:bg-green-700 shadow-sm h-8 w-8 p-0" onClick={e => { e.stopPropagation(); handleAccept(order); }}><CheckCircle className="h-4 w-4" /></Button>
-                        <Button size="sm" variant="destructive" className="shadow-sm h-8 w-8 p-0" onClick={e => { e.stopPropagation(); handleReject(order); }}><XCircle className="h-4 w-4" /></Button>
-                      </>
-                    )}
-                    {order.status === 'accepted' && (
-                      <Button size="sm" className="bg-blue-600 hover:bg-blue-700 shadow-sm h-8 w-8 p-0" onClick={e => { e.stopPropagation(); handleShip(order); }}><Truck className="h-4 w-4" /></Button>
-                    )}
-                    {order.status === 'shipped' && (
-                      <>
-                        <Button size="sm" className="bg-purple-600 hover:bg-purple-700 shadow-sm h-8 w-8 p-0" onClick={e => { e.stopPropagation(); handleDeliver(order); }}><Package className="h-4 w-4" /></Button>
-                        <Button size="sm" variant="destructive" className="h-8 w-8 p-0" onClick={e => { e.stopPropagation(); handleNotDelivered(order); }}><AlertTriangle className="h-4 w-4" /></Button>
-                        <Button size="sm" variant="outline" className="h-8 w-8 p-0" onClick={e => { e.stopPropagation(); handlePrintInvoice(order); }}><Printer className="h-4 w-4" /></Button>
-                      </>
-                    )}
-                    {(order.status === 'delivered' || order.status === 'rejected') && (
-                       <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-gray-400 hover:text-red-600" onClick={e => { e.stopPropagation(); handleDelete(order); }}><Trash2 className="h-4 w-4" /></Button>
-                    )}
-                 </div>
-              </TableCell>
+    key={order.id}
+    className="group hover:bg-orange-50/60 cursor-pointer transition-all duration-150 border-b border-gray-100 last:border-0"
+    onClick={() => setSelectedOrder(order)}
+>
+           {/* عمود الإجراءات */}
+<TableCell className="py-3">
+  <div className="flex flex-wrap gap-1.5 justify-start md:justify-center">
+    {order.status === 'pending' && (
+      <>
+        <Button
+          variant="outline"
+          className="h-8 px-3 rounded-full border-gray-300 text-gray-700 bg-white
+                     hover:bg-green-50 hover:border-green-400 hover:text-green-700 transition-colors"
+          onClick={e => { e.stopPropagation(); handleAccept(order); }}
+        >
+          <CheckCircle className="h-4 w-4 ml-1" />
+          قبول
+        </Button>
+
+        <Button
+          variant="outline"
+          className="h-8 px-3 rounded-full border-gray-300 text-gray-700 bg-white
+                     hover:bg-red-50 hover:border-red-400 hover:text-red-700 transition-colors"
+          onClick={e => { e.stopPropagation(); handleReject(order); }}
+        >
+          <XCircle className="h-4 w-4 ml-1" />
+          رفض
+        </Button>
+      </>
+    )}
+
+    {order.status === 'accepted' && (
+     <Button
+  variant="outline"
+  className="h-8 px-3 rounded-full border-sky-300 text-sky-700 bg-sky-50
+             hover:bg-sky-100 hover:border-sky-500 hover:text-sky-800 transition-colors text-xs md:text-sm"
+  onClick={e => { e.stopPropagation(); handleShip(order); }}
+>
+  <Truck className="h-3.5 w-3.5 ml-1" />
+  شحن
+</Button>
+    )}
+
+    {order.status === 'shipped' && (
+      <>
+        <Button
+          variant="outline"
+          className="h-8 px-3 rounded-full border-gray-300 text-gray-700 bg-white
+                     hover:bg-purple-50 hover:border-purple-400 hover:text-purple-700 transition-colors"
+          onClick={e => { e.stopPropagation(); handleDeliver(order); }}
+        >
+          <Package className="h-4 w-4 ml-1" />
+          تسليم
+        </Button>
+
+        <Button
+          variant="outline"
+          className="h-8 px-3 rounded-full border-gray-300 text-gray-700 bg-white
+                     hover:bg-red-50 hover:border-red-400 hover:text-red-700 transition-colors"
+          onClick={e => { e.stopPropagation(); handleNotDelivered(order); }}
+        >
+          <AlertTriangle className="h-4 w-4 ml-1" />
+          لم يستلم
+        </Button>
+
+        <Button
+          variant="outline"
+          className="h-8 px-3 rounded-full border-gray-300 text-gray-700 bg-white
+                     hover:bg-orange-50 hover:border-orange-400 hover:text-orange-700 transition-colors"
+          onClick={e => { e.stopPropagation(); handlePrintInvoice(order); }}
+        >
+          <Printer className="h-4 w-4 ml-1" />
+          فاتورة
+        </Button>
+      </>
+    )}
+
+    {(order.status === 'delivered' || order.status === 'rejected') && (
+       <Button
+    variant="outline"
+    className="h-8 px-3 rounded-full border-red-300 text-red-600 bg-red-50
+               hover:bg-red-100 hover:border-red-500 hover:text-red-700 font-semibold transition-colors text-xs md:text-sm"
+    onClick={e => { e.stopPropagation(); handleDelete(order); }}
+  >
+    <Trash2 className="h-3.5 w-3.5 ml-1" />
+    حذف
+  </Button>
+    )}
+  </div>
+</TableCell>
+
 
               {/* عمود الحالة */}
               <TableCell>
@@ -628,11 +814,27 @@ useEffect(() => {
 
 
 
-                  <div className="flex justify-center gap-3 my-4">
-  <Button onClick={() => setPage(p => Math.max(1, p - 1))}>السابق</Button>
-  <span>صفحة {page}</span>
-  <Button onClick={() => setPage(p => p + 1)}>التالي</Button>
+                  <div className="flex justify-center items-center gap-4 mt-6 pt-4 border-t border-gray-200">
+    <Button 
+        onClick={() => setPage(p => Math.max(1, p - 1))}
+        disabled={page === 1}
+        variant="outline"
+        className="px-6 font-semibold"
+    >
+        السابق
+    </Button>
+    <span className="px-4 py-2 bg-orange-50 text-orange-700 rounded-lg font-bold border border-orange-200">
+        صفحة {page}
+    </span>
+    <Button 
+        onClick={() => setPage(p => p + 1)}
+        variant="outline"
+        className="px-6 font-semibold"
+    >
+        التالي
+    </Button>
 </div>
+
 
          
 
