@@ -1,228 +1,223 @@
-import React, { useState } from 'react';
-import { Save, Image as ImageIcon, Layout, Type, Palette } from 'lucide-react';
-
+import React, { useState, useRef } from 'react';
+import { Save, Smartphone, Monitor, LayoutTemplate, Type, Image as ImageIcon, Link as LinkIcon, Settings, Upload, X } from 'lucide-react';
+import CustomerPageView from './CustomerPageView';
 
 export default function StorefrontSettings() {
-  const [activeTab, setActiveTab] = useState('general');
-  const [isSaving, setIsSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState('general'); 
+  const [viewMode, setViewMode] = useState<'mobile' | 'desktop'>('mobile');
+  
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const heroInputRef = useRef<HTMLInputElement>(null);
+
   const [settings, setSettings] = useState({
-    // test data
     storeName: 'IBRO Kitchen',
-    description: 'أفضل الأكلات السريعة والتقليدية',
+    storeNameColor1: '#1f2937', 
+    storeNameColor2: '#f97316', 
+    logoUrl: '/assets/logo-ibro-kitchen.png', 
+
+    heroTitle: 'كل ما يحتاجه مطبخك في متجر IBRO Kitchen',
+    heroSubtitle: 'أجهزة مطبخ كهربائية وأدوات طهي مختارة بعناية، مع جودة عالية وتجربة شراء سهلة.',
+    heroButtonText: 'تسوق الآن',
+    heroImageUrl: '/assets/ibro.png', 
     primaryColor: '#f97316',
-    showBanner: true,
-    bannerText: 'توصيل مجاني للطلبات فوق 2000 دج!',
-    isOpen: true,
-    maintenanceMode: false,
+    
+    showDiscount: true,
+    discountText: '70%',
+    
+    featuredTitle: 'الأكثر مبيعاً',
+    allProductsTitle: 'كل المنتجات',
+    
+    footerDescription: 'وجهتكم الأولى لأدوات المطبخ العصرية في الجزائر.',
+    phone: '0555 00 00 00',
+    email: 'contact@ibro-kitchen.dz',
+    address: 'الجزائر العاصمة، الجزائر',
   });
 
-  const handleSave = () => {
-    setIsSaving(true);
-    setTimeout(() => setIsSaving(false), 1000);
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, field: 'logoUrl' | 'heroImageUrl') => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setSettings(prev => ({ ...prev, [field]: imageUrl }));
+    }
   };
 
+  const inputStyle = "w-full p-3 bg-gray-50 border-2 border-gray-100 rounded-xl focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-100 outline-none transition-all text-sm";
+  const labelStyle = "block text-xs font-bold text-gray-500 mb-1.5";
+
   return (
-    <div className="space-y-6 text-right" dir="rtl">
+    <div className="flex flex-col lg:flex-row h-[calc(100vh-100px)] overflow-hidden bg-gray-50" dir="rtl">
       
      
-      <div className="flex justify-between items-center border-b pb-4 mb-6">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-800">تخصيص الواجهة</h2>
-          <p className="text-gray-500 text-sm mt-1">تعديل مظهر المتجر كما يراه الزبائن</p>
-        </div>
-        <button 
-          onClick={handleSave}
-          disabled={isSaving}
-          className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg transition-colors font-medium disabled:opacity-50"
-        >
-          <Save size={18} />
-          {isSaving ? 'جاري الحفظ...' : 'حفظ التغييرات'}
-        </button>
-      </div>
-
-      
-      <div className="w-full">
-        <div className="flex border-b mb-6">
-          <button
-            onClick={() => setActiveTab('general')}
-            className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${
-              activeTab === 'general' 
-                ? 'border-orange-500 text-orange-600 bg-orange-50/50' 
-                : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            إعدادات عامة
-          </button>
-          <button
-            onClick={() => setActiveTab('appearance')}
-            className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${
-              activeTab === 'appearance' 
-                ? 'border-orange-500 text-orange-600 bg-orange-50/50' 
-                : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            المظهر والألوان
-          </button>
-          <button
-            onClick={() => setActiveTab('content')}
-            className={`px-6 py-3 font-medium text-sm transition-colors border-b-2 ${
-              activeTab === 'content' 
-                ? 'border-orange-500 text-orange-600 bg-orange-50/50' 
-                : 'border-transparent text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            الإعلانات والمحتوى
-          </button>
-        </div>
-
-        
-        {activeTab === 'general' && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
-            <div className="bg-white border rounded-xl p-6 shadow-sm">
-              <h3 className="flex items-center gap-2 text-lg font-bold text-gray-800 mb-4 pb-2 border-b">
-                <Layout size={20} className="text-orange-500" />
-                بيانات المتجر
-              </h3>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">اسم المتجر</label>
-                  <input 
-                    type="text" 
-                    value={settings.storeName}
-                    onChange={(e) => setSettings({...settings, storeName: e.target.value})}
-                    className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-orange-200 outline-none transition-shadow text-right"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">وصف المتجر</label>
-                  <input 
-                    type="text" 
-                    value={settings.description}
-                    onChange={(e) => setSettings({...settings, description: e.target.value})}
-                    className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-orange-200 outline-none transition-shadow text-right"
-                  />
-                </div>
-              </div>
-
-              <div className="mt-6 space-y-4">
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
-                  <div>
-                    <span className="block font-medium text-gray-800">حالة المتجر (مفتوح)</span>
-                    <span className="text-xs text-gray-500">عند الإغلاق لن يتم استقبال طلبات جديدة</span>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      className="sr-only peer" 
-                      checked={settings.isOpen}
-                      onChange={(e) => setSettings({...settings, isOpen: e.target.checked})}
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-                  </label>
-                </div>
-
-                <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg border border-red-100">
-                  <div>
-                    <span className="block font-medium text-red-800">وضع الصيانة</span>
-                    <span className="text-xs text-red-600">يظهر صفحة "قيد الصيانة" للزبائن</span>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input 
-                      type="checkbox" 
-                      className="sr-only peer" 
-                      checked={settings.maintenanceMode}
-                      onChange={(e) => setSettings({...settings, maintenanceMode: e.target.checked})}
-                    />
-                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        
-        {activeTab === 'appearance' && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
-             <div className="bg-white border rounded-xl p-6 shadow-sm">
-              <h3 className="flex items-center gap-2 text-lg font-bold text-gray-800 mb-4 pb-2 border-b">
-                <Palette size={20} className="text-purple-500" />
-                الألوان والهوية
-              </h3>
-              
-              <div className="grid md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">اللون الرئيسي</label>
-                  <div className="flex gap-3 items-center">
-                    <input 
-                      type="color" 
-                      value={settings.primaryColor}
-                      onChange={(e) => setSettings({...settings, primaryColor: e.target.value})}
-                      className="h-10 w-16 p-1 rounded cursor-pointer border"
-                    />
-                    <span className="font-mono text-gray-600 bg-gray-100 px-3 py-2 rounded border">{settings.primaryColor}</span>
-                  </div>
-                </div>
-
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
-                    <ImageIcon size={16} />
-                    صورة الغلاف (Banner)
-                  </label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:bg-gray-50 transition-colors cursor-pointer bg-gray-50/50">
-                    <div className="mx-auto h-12 w-12 text-gray-400 mb-2">
-                      <ImageIcon size={48} strokeWidth={1} />
-                    </div>
-                    <p className="text-gray-600 font-medium">اضغط هنا لرفع صورة جديدة</p>
-                    <p className="text-gray-400 text-sm mt-1">يفضل أن تكون بمقاس 1200×400 بكسل</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
+      <div className="w-full lg:w-[400px] xl:w-[450px] bg-white border-l shadow-xl z-20 flex flex-col h-full shrink-0">
        
-        {activeTab === 'content' && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-300">
-            <div className="bg-white border rounded-xl p-6 shadow-sm">
-              <h3 className="flex items-center gap-2 text-lg font-bold text-gray-800 mb-4 pb-2 border-b">
-                <Type size={20} className="text-blue-500" />
-                شريط الإعلانات
-              </h3>
-              
-              <div className="flex items-center justify-between mb-6">
-                <span className="font-medium text-gray-700">تفعيل الشريط العلوي</span>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    className="sr-only peer" 
-                    checked={settings.showBanner}
-                    onChange={(e) => setSettings({...settings, showBanner: e.target.checked})}
-                  />
-                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                </label>
-              </div>
-
-              {settings.showBanner && (
-                <div className="animate-in fade-in slide-in-from-top-1 duration-200">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">نص الإعلان</label>
-                  <input 
-                    type="text" 
-                    value={settings.bannerText}
-                    onChange={(e) => setSettings({...settings, bannerText: e.target.value})}
-                    placeholder="اكتب نص الإعلان هنا..."
-                    className="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-200 outline-none transition-shadow text-right"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">سيظهر هذا النص في أعلى صفحة الزبائن بخلفية ملونة.</p>
-                </div>
-              )}
+         
+         <div className="p-6 border-b bg-white sticky top-0 z-10">
+            <div className="flex justify-between items-center mb-6">
+               <div>
+                  <h2 className="text-xl font-extrabold text-gray-900">تخصيص المتجر</h2>
+                  <p className="text-xs text-gray-500 mt-1">عدّل الهوية والمظهر</p>
+               </div>
+               <button className="bg-gray-900 hover:bg-black text-white px-4 py-2 rounded-lg flex gap-2 items-center text-xs font-bold transition-transform active:scale-95 shadow-lg">
+                  <Save size={14} /> حفظ
+               </button>
             </div>
-          </div>
-        )}
 
+            <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+               {[
+                 { id: 'general', label: 'عام', icon: Settings },
+                 { id: 'hero', label: 'الواجهة', icon: LayoutTemplate },
+                 { id: 'sections', label: 'الأقسام', icon: Type },
+                 { id: 'footer', label: 'التذييل', icon: LinkIcon },
+               ].map(tab => (
+                 <button
+                   key={tab.id}
+                   onClick={() => setActiveTab(tab.id)}
+                   className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all border ${
+                     activeTab === tab.id 
+                       ? 'bg-orange-50 border-orange-200 text-orange-600' 
+                       : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                   }`}
+                 >
+                   <tab.icon size={14} />
+                   {tab.label}
+                 </button>
+               ))}
+            </div>
+         </div>
+
+         <div className="flex-1 overflow-y-auto p-6 custom-scrollbar space-y-8">
+            {activeTab === 'general' && (
+               <div className="space-y-6">
+                  <div className="space-y-2">
+                     <label className={labelStyle}>شعار المتجر (Logo)</label>
+                     <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 text-center hover:bg-gray-50 transition-colors relative group bg-white">
+                        {settings.logoUrl ? (
+                           <div className="relative h-24 w-full flex justify-center items-center bg-gray-100 rounded-lg overflow-hidden">
+                              <img src={settings.logoUrl} alt="Logo" className="h-full object-contain" />
+                              <button onClick={() => logoInputRef.current?.click()} className="absolute inset-0 bg-black/50 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity font-bold text-xs"><Upload size={20} className="mb-1" /> تغيير الشعار</button>
+                           </div>
+                        ) : (
+                           <div onClick={() => logoInputRef.current?.click()} className="cursor-pointer py-4 text-gray-400 flex flex-col items-center"><ImageIcon size={24} className="mb-2" /><span className="text-xs">اضغط لرفع الشعار</span></div>
+                        )}
+                        <input type="file" ref={logoInputRef} onChange={(e) => handleImageUpload(e, 'logoUrl')} className="hidden" accept="image/*" />
+                     </div>
+                  </div>
+                  <div><label className={labelStyle}>اسم المتجر</label><input type="text" value={settings.storeName} onChange={(e) => setSettings({...settings, storeName: e.target.value})} className={inputStyle} /></div>
+                  <div>
+                     <label className={labelStyle}>ألوان الاسم</label>
+                     <div className="flex gap-4">
+                        <div className="flex-1 flex items-center gap-2 border p-2 rounded-xl bg-gray-50"><input type="color" value={settings.storeNameColor1} onChange={(e) => setSettings({...settings, storeNameColor1: e.target.value})} className="h-8 w-8 cursor-pointer rounded border-0 p-0" /><span className="text-xs font-mono text-gray-500">اللون 1</span></div>
+                        <div className="flex-1 flex items-center gap-2 border p-2 rounded-xl bg-gray-50"><input type="color" value={settings.storeNameColor2} onChange={(e) => setSettings({...settings, storeNameColor2: e.target.value})} className="h-8 w-8 cursor-pointer rounded border-0 p-0" /><span className="text-xs font-mono text-gray-500">اللون 2</span></div>
+                     </div>
+                  </div>
+                  <div>
+                     <label className={labelStyle}>اللون الرئيسي للمتجر</label>
+                     <div className="flex gap-3 flex-wrap">
+                        {['#f97316', '#ef4444', '#3b82f6', '#10b981', '#8b5cf6', '#000000'].map(color => (
+                           <button key={color} onClick={() => setSettings({...settings, primaryColor: color})} className={`w-8 h-8 rounded-full border-2 transition-transform hover:scale-110 ${settings.primaryColor === color ? 'border-gray-900 scale-110' : 'border-white shadow'}`} style={{ backgroundColor: color }} />
+                        ))}
+                        <input type="color" value={settings.primaryColor} onChange={(e) => setSettings({...settings, primaryColor: e.target.value})} className="w-8 h-8 rounded-full border-0 p-0 cursor-pointer" />
+                     </div>
+                  </div>
+               </div>
+            )}
+            {activeTab === 'hero' && (
+               <div className="space-y-6">
+                  <div className="space-y-2">
+                     <label className={labelStyle}>صورة الخلفية الكبيرة</label>
+                     <div className="border-2 border-dashed border-gray-200 rounded-xl p-2 text-center hover:bg-gray-50 transition-colors relative group bg-white">
+                        <div className="relative h-32 w-full rounded-lg overflow-hidden bg-gray-100">
+                           <img src={settings.heroImageUrl} alt="Hero" className="h-full w-full object-cover" />
+                           <button onClick={() => heroInputRef.current?.click()} className="absolute inset-0 bg-black/50 text-white flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity font-bold text-xs"><Upload size={24} className="mb-2" /> تغيير الصورة</button>
+                        </div>
+                        <input type="file" ref={heroInputRef} onChange={(e) => handleImageUpload(e, 'heroImageUrl')} className="hidden" accept="image/*" />
+                     </div>
+                  </div>
+                  <div><label className={labelStyle}>العنوان الرئيسي</label><input type="text" value={settings.heroTitle} onChange={(e) => setSettings({...settings, heroTitle: e.target.value})} className={inputStyle} /></div>
+                  <div><label className={labelStyle}>النص الوصفي</label><textarea value={settings.heroSubtitle} onChange={(e) => setSettings({...settings, heroSubtitle: e.target.value})} className={`${inputStyle} h-24 resize-none`} /></div>
+                  <div className="grid grid-cols-2 gap-4">
+                     <div><label className={labelStyle}>نص الزر</label><input type="text" value={settings.heroButtonText} onChange={(e) => setSettings({...settings, heroButtonText: e.target.value})} className={inputStyle} /></div>
+                     <div><label className={labelStyle}>نص الخصم</label><input type="text" value={settings.discountText} onChange={(e) => setSettings({...settings, discountText: e.target.value})} className={inputStyle} /></div>
+                  </div>
+               </div>
+            )}
+            {activeTab === 'sections' && (
+               <div className="space-y-6">
+                  <div><label className={labelStyle}>عنوان القسم الأول</label><input type="text" value={settings.featuredTitle} onChange={(e) => setSettings({...settings, featuredTitle: e.target.value})} className={inputStyle} /></div>
+                  <div><label className={labelStyle}>عنوان القسم الثاني</label><input type="text" value={settings.allProductsTitle} onChange={(e) => setSettings({...settings, allProductsTitle: e.target.value})} className={inputStyle} /></div>
+               </div>
+            )}
+            {activeTab === 'footer' && (
+               <div className="space-y-6">
+                  <div><label className={labelStyle}>وصف المتجر في الأسفل</label><textarea value={settings.footerDescription} onChange={(e) => setSettings({...settings, footerDescription: e.target.value})} className={`${inputStyle} h-24 resize-none`} /></div>
+                  <div><label className={labelStyle}>رقم الهاتف</label><input type="text" value={settings.phone} onChange={(e) => setSettings({...settings, phone: e.target.value})} className={inputStyle} /></div>
+                  <div><label className={labelStyle}>البريد الإلكتروني</label><input type="text" value={settings.email} onChange={(e) => setSettings({...settings, email: e.target.value})} className={inputStyle} /></div>
+                  <div><label className={labelStyle}>العنوان</label><input type="text" value={settings.address} onChange={(e) => setSettings({...settings, address: e.target.value})} className={inputStyle} /></div>
+               </div>
+            )}
+         </div>
       </div>
+
+    
+      <div className="hidden lg:flex flex-1 bg-[#f0f2f5] flex-col relative overflow-hidden">
+         
+        
+         <div className="h-14 bg-white border-b px-6 flex items-center justify-between shadow-sm z-10 shrink-0">
+            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Live Preview</span>
+            <div className="bg-gray-100 p-1 rounded-lg flex gap-1">
+               <button 
+                 onClick={() => setViewMode('mobile')}
+                 className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-2 transition-all ${viewMode === 'mobile' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+               >
+                 <Smartphone size={14} /> هاتف
+               </button>
+               <button 
+                 onClick={() => setViewMode('desktop')}
+                 className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-2 transition-all ${viewMode === 'desktop' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+               >
+                 <Monitor size={14} /> حاسوب
+               </button>
+            </div>
+            <div className="w-20"></div>
+         </div>
+
+        
+         <div className="flex-1 overflow-auto flex items-center justify-center p-8 custom-scrollbar bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
+            
+        
+            <div 
+               className={`transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] bg-white shadow-2xl overflow-hidden border-gray-900 shrink-0 flex flex-col ${
+                  viewMode === 'mobile' 
+                     ? 'w-[375px] h-[720px] rounded-[3rem] border-[12px]' 
+                     : 'w-[95%] h-[90%] rounded-xl border-[1px] border-gray-300'
+               }`}
+            >
+               {viewMode === 'desktop' && (
+                  <div className="bg-gray-100 border-b px-4 py-2 flex items-center gap-4 shrink-0">
+                     <div className="flex gap-1.5">
+                        <div className="w-3 h-3 rounded-full bg-red-400"/>
+                        <div className="w-3 h-3 rounded-full bg-yellow-400"/>
+                        <div className="w-3 h-3 rounded-full bg-green-400"/>
+                     </div>
+                     <div className="bg-white px-3 py-1 rounded text-[10px] text-gray-400 flex-1 text-center font-mono border shadow-sm">
+                        ibro-kitchen.dz
+                     </div>
+                  </div>
+               )}
+
+               
+               {viewMode === 'mobile' && (
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-gray-900 rounded-b-xl z-50 pointer-events-none"/>
+               )}
+               
+            
+               <div className="flex-1 w-full overflow-y-auto bg-white scroll-smooth no-scrollbar relative">
+                  <CustomerPageView settings={settings} />
+               </div>
+            </div>
+         </div>
+      </div>
+
     </div>
   );
 }
