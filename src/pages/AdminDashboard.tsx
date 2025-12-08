@@ -13,6 +13,8 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { supabase } from '@/lib/supabase';
 import { ManagementCustumers } from "../components/ManagementCustumers";
 import StorefrontSettings from '../components/StorefrontSettings';
+import StoreData from '../components/StoreData';
+import ShippingOptions from '../components/ShippingOptions';
 
 
 
@@ -181,7 +183,7 @@ setTopProducts(topProductsList);
     { id: 'customers', label: 'قائمة الزبائن', icon: Users },
     { id: 'storefront', label: 'تغيير واجهة الزبائن', icon: Palette },
     { id: 'store-info', label: 'بيانات المتجر', icon: Store },
-    { id: 'settings', label: 'الإعدادات', icon: Settings },
+    { id: 'settings', label: 'خيارات الشحن', icon: Settings },
   ];
 
   const statsCards = [
@@ -428,15 +430,13 @@ setTopProducts(topProductsList);
 
           {activeTab === 'store-info' && (
             <div className="p-8 bg-white rounded-xl shadow-sm">
-              <h3 className="text-2xl font-bold text-gray-800 mb-4">بيانات المتجر</h3>
-              <p className="text-gray-500">معلومات المتجر هنا...</p>
+             <StoreData/>
             </div>
           )}
 
           {activeTab === 'settings' && (
             <div className="p-8 bg-white rounded-xl shadow-sm">
-              <h3 className="text-2xl font-bold text-gray-800 mb-4">الإعدادات</h3>
-              <p className="text-gray-500">إعدادات النظام هنا...</p>
+             <ShippingOptions/>
             </div>
           )}
         </div>
@@ -445,10 +445,4 @@ setTopProducts(topProductsList);
     </div>
   );
 }
-
-
-
-
-
-
 

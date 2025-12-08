@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Save, Smartphone, Monitor, LayoutTemplate, Type, Image as ImageIcon, Link as LinkIcon, Settings, Upload, X } from 'lucide-react';
+import { Save, Smartphone, Monitor, LayoutTemplate, Type, Image as ImageIcon, Link as LinkIcon, Settings, Upload } from 'lucide-react';
 import CustomerPageView from './CustomerPageView';
 
 export default function StorefrontSettings() {
@@ -14,19 +14,15 @@ export default function StorefrontSettings() {
     storeNameColor1: '#1f2937', 
     storeNameColor2: '#f97316', 
     logoUrl: '/assets/logo-ibro-kitchen.png', 
-
     heroTitle: 'كل ما يحتاجه مطبخك في متجر IBRO Kitchen',
     heroSubtitle: 'أجهزة مطبخ كهربائية وأدوات طهي مختارة بعناية، مع جودة عالية وتجربة شراء سهلة.',
     heroButtonText: 'تسوق الآن',
     heroImageUrl: '/assets/ibro.png', 
     primaryColor: '#f97316',
-    
     showDiscount: true,
     discountText: '70%',
-    
     featuredTitle: 'الأكثر مبيعاً',
     allProductsTitle: 'كل المنتجات',
-    
     footerDescription: 'وجهتكم الأولى لأدوات المطبخ العصرية في الجزائر.',
     phone: '0555 00 00 00',
     email: 'contact@ibro-kitchen.dz',
@@ -47,10 +43,8 @@ export default function StorefrontSettings() {
   return (
     <div className="flex flex-col lg:flex-row h-[calc(100vh-100px)] overflow-hidden bg-gray-50" dir="rtl">
       
-     
+      {/* 1. لوحة التحكم (يمين) */}
       <div className="w-full lg:w-[400px] xl:w-[450px] bg-white border-l shadow-xl z-20 flex flex-col h-full shrink-0">
-       
-         
          <div className="p-6 border-b bg-white sticky top-0 z-10">
             <div className="flex justify-between items-center mb-6">
                <div>
@@ -61,7 +55,6 @@ export default function StorefrontSettings() {
                   <Save size={14} /> حفظ
                </button>
             </div>
-
             <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
                {[
                  { id: 'general', label: 'عام', icon: Settings },
@@ -69,22 +62,12 @@ export default function StorefrontSettings() {
                  { id: 'sections', label: 'الأقسام', icon: Type },
                  { id: 'footer', label: 'التذييل', icon: LinkIcon },
                ].map(tab => (
-                 <button
-                   key={tab.id}
-                   onClick={() => setActiveTab(tab.id)}
-                   className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all border ${
-                     activeTab === tab.id 
-                       ? 'bg-orange-50 border-orange-200 text-orange-600' 
-                       : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
-                   }`}
-                 >
-                   <tab.icon size={14} />
-                   {tab.label}
+                 <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all border ${activeTab === tab.id ? 'bg-orange-50 border-orange-200 text-orange-600' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
+                   <tab.icon size={14} /> {tab.label}
                  </button>
                ))}
             </div>
          </div>
-
          <div className="flex-1 overflow-y-auto p-6 custom-scrollbar space-y-8">
             {activeTab === 'general' && (
                <div className="space-y-6">
@@ -158,61 +141,62 @@ export default function StorefrontSettings() {
          </div>
       </div>
 
-    
+      {/* 2. المعاينة الحية (يسار) - التحسين النهائي */}
       <div className="hidden lg:flex flex-1 bg-[#f0f2f5] flex-col relative overflow-hidden">
-         
-        
+         {/* Toolbar */}
          <div className="h-14 bg-white border-b px-6 flex items-center justify-between shadow-sm z-10 shrink-0">
             <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Live Preview</span>
             <div className="bg-gray-100 p-1 rounded-lg flex gap-1">
-               <button 
-                 onClick={() => setViewMode('mobile')}
-                 className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-2 transition-all ${viewMode === 'mobile' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-               >
-                 <Smartphone size={14} /> هاتف
-               </button>
-               <button 
-                 onClick={() => setViewMode('desktop')}
-                 className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-2 transition-all ${viewMode === 'desktop' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
-               >
-                 <Monitor size={14} /> حاسوب
-               </button>
+               <button onClick={() => setViewMode('mobile')} className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-2 transition-all ${viewMode === 'mobile' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}><Smartphone size={14} /> هاتف</button>
+               <button onClick={() => setViewMode('desktop')} className={`px-3 py-1.5 rounded-md text-xs font-bold flex items-center gap-2 transition-all ${viewMode === 'desktop' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}><Monitor size={14} /> حاسوب</button>
             </div>
             <div className="w-20"></div>
          </div>
 
-        
-         <div className="flex-1 overflow-auto flex items-center justify-center p-8 custom-scrollbar bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
+         {/* Canvas Area */}
+         <div className="flex-1 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] flex items-center justify-center overflow-hidden relative">
             
-        
+            {/* 
+                حاوية الموبايل:
+                استخدام transform: scale(0.65) لتصغير الهاتف بشكل كبير ليناسب أي شاشة لابتوب صغيرة.
+                الأبعاد الأصلية للهاتف محفوظة (390x844).
+            */}
             <div 
-               className={`transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] bg-white shadow-2xl overflow-hidden border-gray-900 shrink-0 flex flex-col ${
-                  viewMode === 'mobile' 
-                     ? 'w-[375px] h-[720px] rounded-[3rem] border-[12px]' 
-                     : 'w-[95%] h-[90%] rounded-xl border-[1px] border-gray-300'
-               }`}
+               className={`transition-all duration-500 ease-in-out bg-white shadow-2xl overflow-hidden flex flex-col relative origin-center`}
+               style={viewMode === 'mobile' ? { 
+                  width: '390px',   
+                  height: '844px',
+                  minWidth: '390px', // منع الانكماش
+                  minHeight: '844px',
+                  borderRadius: '40px',
+                  border: '12px solid #1f2937', 
+                  transform: 'scale(0.65)' // تصغير قوي ليظهر بالكامل
+               } : { 
+                  width: 'calc(100% - 60px)', 
+                  height: 'calc(100% - 60px)', 
+                  borderRadius: '12px', 
+                  border: '1px solid #e5e7eb',
+                  transform: 'scale(1)'
+               }}
             >
+               {/* Desktop Browser Header */}
                {viewMode === 'desktop' && (
                   <div className="bg-gray-100 border-b px-4 py-2 flex items-center gap-4 shrink-0">
-                     <div className="flex gap-1.5">
-                        <div className="w-3 h-3 rounded-full bg-red-400"/>
-                        <div className="w-3 h-3 rounded-full bg-yellow-400"/>
-                        <div className="w-3 h-3 rounded-full bg-green-400"/>
-                     </div>
-                     <div className="bg-white px-3 py-1 rounded text-[10px] text-gray-400 flex-1 text-center font-mono border shadow-sm">
-                        ibro-kitchen.dz
-                     </div>
+                     <div className="flex gap-1.5"><div className="w-3 h-3 rounded-full bg-red-400"/><div className="w-3 h-3 rounded-full bg-yellow-400"/><div className="w-3 h-3 rounded-full bg-green-400"/></div>
+                     <div className="bg-white px-3 py-1 rounded text-[10px] text-gray-400 flex-1 text-center font-mono border shadow-sm">ibro-kitchen.dz</div>
                   </div>
                )}
 
-               
+               {/* Mobile Notch */}
                {viewMode === 'mobile' && (
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-gray-900 rounded-b-xl z-50 pointer-events-none"/>
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[120px] h-[30px] bg-[#1f2937] rounded-b-[18px] z-50 pointer-events-none"/>
                )}
                
-            
-               <div className="flex-1 w-full overflow-y-auto bg-white scroll-smooth no-scrollbar relative">
-                  <CustomerPageView settings={settings} />
+               {/* المحتوى الداخلي */}
+               <div className="flex-1 w-full h-full overflow-y-auto bg-white scroll-smooth no-scrollbar relative">
+                  <div className={viewMode === 'mobile' ? 'pt-8' : ''}>
+                     <CustomerPageView settings={settings} />
+                  </div>
                </div>
             </div>
          </div>
