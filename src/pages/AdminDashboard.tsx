@@ -12,7 +12,7 @@ import {
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { supabase } from '@/lib/supabase';
 import { ManagementCustumers } from "../components/ManagementCustumers";
-
+import StorefrontSettings from '../components/StorefrontSettings';
 
 
 
@@ -43,7 +43,7 @@ export default function AdminDashboard() {
   }, [isAuthenticated, navigate]);
 
  const fetchDashboardData = async () => {
-  console.log('🚀 Starting fetchDashboardData...');
+  console.log(' Starting fetchDashboardData...');
   try {
     interface OrderItem {
       productId: string;
@@ -58,12 +58,12 @@ export default function AdminDashboard() {
       quantity: number;
     }
 
-    // ✅ 1. عدد الطلبات
+    
     const { count: ordersCount } = await supabase
       .from('Orders')
       .select('*', { count: 'exact', head: true });
 
-    // ✅ 2. إجمالي المبيعات
+    
     const { data: orders } = await supabase
       .from('Orders')
       .select('totalAmount, status')
@@ -71,12 +71,12 @@ export default function AdminDashboard() {
     
     const revenue = orders?.reduce((sum: number, order: any) => sum + (order.totalAmount || 0), 0) || 0;
 
-    // ✅ 3. عدد المنتجات
+  
     const { count: productsCount } = await supabase
       .from('Products')
       .select('*', { count: 'exact', head: true });
 
-    // ✅ 4. عدد الزبائن
+    
     const { data: customers } = await supabase
       .from('Customers')
       .select('id');
@@ -90,7 +90,7 @@ export default function AdminDashboard() {
       totalCustomers: uniqueCustomers,
     });
 
-    // ✅ 5. بيانات المبيعات (آخر 7 أيام)
+   
     const last7Days = Array.from({ length: 7 }, (_, i) => {
       const date = new Date();
       date.setDate(date.getDate() - (6 - i));
@@ -117,14 +117,14 @@ export default function AdminDashboard() {
 
     setSalesData(salesByDay);
 
-    // ✅ 6. أكثر المنتجات مبيعاً (ابدأ التعديل من هنا ⬇️)
-// ✅ 6. أكثر المنتجات مبيعاً (من OrderItems)
+  
+
 const { data: allProducts } = await supabase
   .from('Products')
   .select('id, name, imageUrl');
 
 const { data: orderItems } = await supabase
-  .from('OrderItems') // ← بحرف I كبير
+  .from('OrderItems') 
   .select('productId, quantity, productName');
 
 console.log('📦 Order Items:', orderItems);
@@ -157,7 +157,7 @@ setTopProducts(topProductsList);
 
 
 
-    // ✅ 6. نهاية قسم أكثر المنتجات (أنهِ التعديل هنا ⬆️)
+ 
 
   } catch (error) {
     console.error('Error fetching dashboard data:', error);
@@ -422,8 +422,7 @@ setTopProducts(topProductsList);
 
           {activeTab === 'storefront' && (
             <div className="p-8 bg-white rounded-xl shadow-sm">
-              <h3 className="text-2xl font-bold text-gray-800 mb-4">تخصيص واجهة الزبائن</h3>
-              <p className="text-gray-500">إعدادات الواجهة هنا...</p>
+              <StorefrontSettings/>
             </div>
           )}
 
