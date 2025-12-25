@@ -19,24 +19,24 @@ console.log('ADMIN EMAILS =>', import.meta.env.VITE_ADMIN_EMAILS);
 
 const queryClient = new QueryClient();
 
-// 👇 2. نحتاج لمكون داخلي (PixelTracker) لأن useLocation لا تعمل خارج BrowserRouter
+
 const PixelTracker = () => {
   const location = useLocation();
 
   useEffect(() => {
-    // تهيئة البيكسل مرة واحدة فقط
-    ReactPixel.init('827374046868024', undefined, {
+   
+    ReactPixel.init('1243975774445805', undefined, {
       autoConfig: true,
       debug: true
     });
   }, []);
 
   useEffect(() => {
-    // هذا الكود سيعمل كلما تغير الرابط (location)
-    ReactPixel.pageView();
-  }, [location]); // 👈 السر هنا: نربطه بتغير الموقع
 
-  return null; // هذا المكون لا يرسم شيئاً، وظيفته فقط المراقبة
+    ReactPixel.pageView();
+  }, [location]); 
+
+  return null; 
 };
 
 const App = () => {
@@ -50,7 +50,7 @@ const App = () => {
         <Toaster />
         <AuthProvider>
           <BrowserRouter>
-            {/* 👇 3. نضع الجاسوس هنا داخل الـ Router */}
+         
             <PixelTracker />
             <ScrollToTop /> 
             <Routes>
