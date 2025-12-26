@@ -25,7 +25,7 @@ const PixelTracker = () => {
 
   useEffect(() => {
    
-    ReactPixel.init('827374046868024', undefined, {
+    ReactPixel.init('1553249005882755', undefined, {
       autoConfig: true,
       debug: true
     });
