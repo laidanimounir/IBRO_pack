@@ -24,7 +24,7 @@ export default function ProductGrid({ products, onAddToCart }: ProductGridProps)
             className="group flex flex-col items-center text-center cursor-pointer"
           >
             
-            {/* 1. حاوية الصورة (مرنة أكثر الآن) */}
+          
             <div className="relative w-full aspect-[4/5] md:aspect-square bg-[#F5F5F5] rounded-[1.5rem] mb-4 flex items-center justify-center overflow-hidden transition-all duration-300 group-hover:shadow-md p-4">
               
               {discount > 0 && (
@@ -33,7 +33,7 @@ export default function ProductGrid({ products, onAddToCart }: ProductGridProps)
                 </Badge>
               )}
 
-              {/* الصورة تأخذ كامل الحجم المتاح داخل الـ padding */}
+        
               <img 
                 src={product.imageUrl} 
                 alt={product.name}
@@ -53,7 +53,7 @@ export default function ProductGrid({ products, onAddToCart }: ProductGridProps)
               </Button>
             </div>
             
-            {/* 2. المعلومات */}
+          
             <div className="w-full space-y-1">
               <h3 className="text-base md:text-lg font-bold text-gray-900 leading-tight group-hover:text-orange-600 transition-colors">
                 {product.name}
