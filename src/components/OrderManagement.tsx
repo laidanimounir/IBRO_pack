@@ -18,7 +18,8 @@ import {
   ThumbsUp,
   Printer,
   X,
-  Trash2
+  Trash2,
+  MapPin
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -652,8 +653,8 @@ useEffect(() => {
         <TableHead className="text-right font-bold text-gray-700 py-4 w-[260px]">الإجراءات</TableHead>
         <TableHead className="text-right font-bold text-gray-700">الحالة</TableHead>
         <TableHead className="text-right font-bold text-gray-700">المبلغ</TableHead>
-        <TableHead className="text-right font-bold text-gray-700">العنوان</TableHead>
         <TableHead className="text-right font-bold text-gray-700">الولاية</TableHead>
+        <TableHead className="text-right font-bold text-gray-700">العنوان</TableHead>
         <TableHead className="text-right font-bold text-gray-700">الهاتف</TableHead>
         <TableHead className="text-right font-bold text-gray-700">الاسم</TableHead>
       </TableRow>
@@ -788,8 +789,20 @@ useEffect(() => {
 
               
               <TableCell className="font-mono text-gray-700 font-medium">{order.totalAmount?.toLocaleString('ar-DZ')} دج</TableCell>
+
+
+<TableCell className="font-medium text-gray-700">
+  <span className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded-full text-xs font-bold">
+    <MapPin size={12} />
+    {order.wilaya || 'غير محدد'}
+  </span>
+</TableCell>
+
               <TableCell className="text-sm text-gray-600 truncate max-w-[150px]" title={order.address}>{order.address}</TableCell>
               
+
+
+
               <TableCell>
                   <div className="flex items-center justify-start gap-1.5">
                     <span className="font-mono text-sm text-gray-600" dir="ltr">{order.phone}</span>
@@ -882,6 +895,15 @@ useEffect(() => {
               {selectedOrder.address}
             </p>
           </div>
+
+          <div className="bg-white p-3 rounded-xl border border-gray-100 text-right md:col-span-2">
+            <p className="mb-1 text-xs text-gray-500 font-medium">الولاية</p>
+            <p className="text-sm font-semibold text-gray-900 flex items-center gap-1">
+              <MapPin size={14} className="text-blue-500" />
+              {selectedOrder.wilaya || 'غير محدد'}
+            </p>
+          </div>
+
         </div>
 
         
