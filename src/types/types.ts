@@ -23,6 +23,7 @@ export interface Order {
   address: string;
   items: OrderItem[];
   totalAmount: number;
+  wilaya?: string;
   status: 'pending' | 'accepted' | 'rejected' | 'shipped' | 'delivered';
   rejectionReason?: string;
   createdAt: string;

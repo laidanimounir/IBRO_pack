@@ -653,6 +653,7 @@ useEffect(() => {
         <TableHead className="text-right font-bold text-gray-700">الحالة</TableHead>
         <TableHead className="text-right font-bold text-gray-700">المبلغ</TableHead>
         <TableHead className="text-right font-bold text-gray-700">العنوان</TableHead>
+        <TableHead className="text-right font-bold text-gray-700">الولاية</TableHead>
         <TableHead className="text-right font-bold text-gray-700">الهاتف</TableHead>
         <TableHead className="text-right font-bold text-gray-700">الاسم</TableHead>
       </TableRow>
