@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea'; // 🆕 إضافة
 import {
   Table,
   TableBody,
@@ -34,12 +35,14 @@ export default function ProductManagement() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
+  // 🆕 إضافة description
   const [formData, setFormData] = useState({
     name: '',
     oldPrice: '',
     newPrice: '',
     imageUrl: '',
     isFeatured: false,
+    description: '', // 🆕
   });
 
   useEffect(() => {
@@ -75,6 +78,7 @@ export default function ProductManagement() {
       newPrice: '',
       imageUrl: '',
       isFeatured: false,
+      description: '', // 🆕
     });
     setEditingProduct(null);
     setImageFile(null);
@@ -118,12 +122,14 @@ export default function ProductManagement() {
         finalImageUrl = urlData.publicUrl;
       }
 
+      // 🆕 إضافة description
       const productData = {
         name: formData.name,
         oldPrice: formData.oldPrice ? parseFloat(formData.oldPrice) : null,
         newPrice: parseFloat(formData.newPrice),
         imageUrl: finalImageUrl,
         isFeatured: formData.isFeatured,
+        description: formData.description || null, // 🆕
       };
 
       let result;
@@ -171,6 +177,7 @@ export default function ProductManagement() {
       newPrice: product.newPrice.toString(),
       imageUrl: product.imageUrl,
       isFeatured: product.isFeatured,
+      description: product.description || '', // 🆕
     });
     setImageFile(null);
     setIsDialogOpen(true);
@@ -218,7 +225,6 @@ export default function ProductManagement() {
 
   return (
     <Card dir="rtl" className="border-gray-100 shadow-sm rounded-3xl">
-      {/* الهيدر العصري */}
       <CardHeader className="flex flex-col gap-4 border-b border-gray-100 pb-4 md:flex-row md:items-center md:justify-between">
         <div>
           <CardTitle className="text-2xl font-bold text-gray-900">
@@ -230,7 +236,6 @@ export default function ProductManagement() {
         </div>
 
         <div className="flex flex-col md:flex-row gap-3 md:items-center">
-          {/* حقل البحث */}
           <div className="relative">
             <Input
               type="text"
@@ -242,7 +247,6 @@ export default function ProductManagement() {
             <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
           </div>
 
-          {/* زر إضافة منتج */}
           <Dialog
             open={isDialogOpen}
             onOpenChange={(open) => {
@@ -256,7 +260,7 @@ export default function ProductManagement() {
                 إضافة منتج جديد
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-2xl" dir="rtl">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" dir="rtl">
               <DialogHeader>
                 <DialogTitle className="text-right text-2xl">
                   {editingProduct ? 'تعديل المنتج' : 'إضافة منتج جديد'}
@@ -278,6 +282,26 @@ export default function ProductManagement() {
                     className="text-right"
                     required
                   />
+                </div>
+
+                {/* 🆕 حقل الوصف */}
+                <div className="space-y-2">
+                  <Label htmlFor="description" className="text-right block">
+                    وصف المنتج <span className="text-gray-400 text-xs">(اختياري)</span>
+                  </Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) =>
+                      setFormData({ ...formData, description: e.target.value })
+                    }
+                    placeholder="أدخل وصفاً تفصيلياً للمنتج... (مثال: المميزات، الاستخدامات، المواصفات)"
+                    className="text-right min-h-[120px] resize-none"
+                    maxLength={1000}
+                  />
+                  <p className="text-xs text-gray-400 text-right">
+                    {formData.description.length}/1000 حرف
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -358,7 +382,7 @@ export default function ProductManagement() {
                   </Label>
                 </div>
 
-                <div className="flex gap-3 justify-end">
+                <div className="flex gap-3 justify-end pt-4 border-t">
                   <Button
                     type="button"
                     variant="outline"
@@ -385,7 +409,6 @@ export default function ProductManagement() {
         </div>
       </CardHeader>
 
-      {/* جدول المنتجات بشكل عصري */}
       <CardContent className="pt-4">
         <div className="overflow-x-auto">
           <Table>
@@ -428,7 +451,6 @@ export default function ProductManagement() {
                     key={product.id}
                     className="hover:bg-orange-50/50 transition-colors"
                   >
-                    {/* الإجراءات */}
                     <TableCell>
                       <div className="flex gap-2 justify-start">
                         <Button
@@ -452,7 +474,6 @@ export default function ProductManagement() {
                       </div>
                     </TableCell>
 
-                    {/* مميز */}
                     <TableCell className="text-center">
                       <Button
                         variant={product.isFeatured ? 'default' : 'outline'}
@@ -475,12 +496,10 @@ export default function ProductManagement() {
                       </Button>
                     </TableCell>
 
-                    {/* السعر الجديد */}
                     <TableCell className="text-right font-bold text-green-600 whitespace-nowrap">
                       {product.newPrice.toLocaleString('ar-DZ')} دج
                     </TableCell>
 
-                    {/* السعر القديم */}
                     <TableCell className="text-right text-gray-400 whitespace-nowrap">
                       {product.oldPrice ? (
                         <span className="line-through">
@@ -491,12 +510,10 @@ export default function ProductManagement() {
                       )}
                     </TableCell>
 
-                    {/* الاسم */}
                     <TableCell className="text-right font-semibold text-gray-900">
                       {product.name}
                     </TableCell>
 
-                    {/* الصورة */}
                     <TableCell className="text-right">
                       <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 ml-auto">
                         <img
