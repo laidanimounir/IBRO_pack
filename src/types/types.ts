@@ -5,6 +5,7 @@ export interface Product {
   newPrice: number;
   imageUrl: string;
   isFeatured: boolean;
+  description?: string;
   createAt: string;
 }
 
