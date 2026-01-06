@@ -8,7 +8,7 @@ import { supabase } from '@/lib/supabase';
 
 
 
-const PAGE_SIZE = 6;
+const PAGE_SIZE = 100;
 
 export default function CustomerPage() {
   const [products, setProducts] = useState<Product[]>([]);
