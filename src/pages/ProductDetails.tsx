@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Menu, X, ChevronRight, ShoppingBag, Home, Phone, Truck, ShieldCheck, User, MapPin, Calculator, Star } from 'lucide-react';
+import { Menu, X, ChevronRight, ShoppingBag, Home, Phone, Truck, ShieldCheck, User, MapPin, Calculator, Star, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import ReactPixel from 'react-facebook-pixel';
 
@@ -14,229 +14,293 @@ interface Product {
   description?: string;
 }
 
+interface Wilaya {
+  id: number;
+  name: string;
+  price: number;
+  active: boolean;
+}
 
-const DELIVERY_PRICE = 500;
 const PRODUCT_DESCRIPTION = "الخيار الأمثل لمطبخك العصري. أداء قوي، تصميم متين، ونتائج مذهلة في كل مرة. احصل عليه الآن واستفد من العرض المحدود.";
 
-
 const EmbeddedOrderForm = ({ 
-  product, onFieldsChange }: {  product: Product; onFieldsChange?: (filled: boolean) => void; 
+  product, onFieldsChange 
+}: {  
+  product: Product; 
+  onFieldsChange?: (filled: boolean) => void; 
 }) => {
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
+  const [wilaya, setWilaya] = useState(''); // 🆕
   const [quantity, setQuantity] = useState(1);
-  // تحقق من ملء الحقول
-useEffect(() => {
-  const isFilled = customerName.trim() !== '' && phone.trim() !== '' && address.trim() !== '';
-  onFieldsChange?.(isFilled);
-}, [customerName, phone, address, onFieldsChange]);
+  
+  // 🆕 State للولايات
+  const [wilayasList, setWilayasList] = useState<Wilaya[]>([]);
+  const [loadingWilayas, setLoadingWilayas] = useState(true);
+  const [deliveryPrice, setDeliveryPrice] = useState(500);
 
+  // 🆕 تحميل الولايات من قاعدة البيانات
+  useEffect(() => {
+    const loadWilayas = async () => {
+      const { data, error } = await supabase
+        .from('Wilayas')
+        .select('*')
+        .eq('active', true)
+        .order('name', { ascending: true });
 
-  const finalTotal = (product.newPrice * quantity) + DELIVERY_PRICE;
-
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!customerName?.trim() || !phone?.trim() || !address?.trim()) {
-      toast.error('الرجاء ملء جميع الحقول المطلوبة');
-      return;
-    }
-
-    try {
-      let customerId;
-      const { data: existingCustomer } = await supabase
-        .from('Customers')
-        .select('id')
-        .eq('phone', phone)
-        .single();
-
-      if (existingCustomer) {
-        customerId = existingCustomer.id;
+      if (error) {
+        console.error('Error loading wilayas:', error);
       } else {
-        const { data: newCustomer, error: custError } = await supabase
-          .from('Customers')
-          .insert({ phone, name: customerName, address, totalOrders: 1,deliveredOrders: 0 ,warnings: 0})
-          .select('id')
-          .single();
-          
-        if (custError) throw custError;
-        customerId = newCustomer.id;
+        setWilayasList(data || []);
       }
+      setLoadingWilayas(false);
+    };
+    loadWilayas();
+  }, []);
 
-      const { data: newOrder, error: orderError } = await supabase
-        .from('Orders')
-        .insert({
-          customerId,
-          phone,
-          address,
-          totalAmount: finalTotal,
-          status: 'pending',
-          createdAt: new Date().toISOString(),
-        })
+  // 🆕 حساب سعر التوصيل عند تغيير الولاية
+  useEffect(() => {
+    if (wilaya) {
+      const selectedWilaya = wilayasList.find(w => w.name === wilaya);
+      if (selectedWilaya) {
+        setDeliveryPrice(selectedWilaya.price);
+      }
+    }
+  }, [wilaya, wilayasList]);
+
+  // تحقق من ملء الحقول
+  useEffect(() => {
+    const isFilled = customerName.trim() !== '' && phone.trim() !== '' && address.trim() !== '' && wilaya.trim() !== '';
+    onFieldsChange?.(isFilled);
+  }, [customerName, phone, address, wilaya, onFieldsChange]);
+
+  const finalTotal = (product.newPrice * quantity) + deliveryPrice;
+
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!customerName?.trim() || !phone?.trim() || !address?.trim() || !wilaya?.trim()) {
+    toast.error('الرجاء ملء جميع الحقول المطلوبة');
+    return;
+  }
+
+  try {
+    let customerId;
+    const { data: existingCustomer } = await supabase
+      .from('Customers')
+      .select('id')
+      .eq('phone', phone)
+      .single();
+
+    if (existingCustomer) {
+      customerId = existingCustomer.id;
+    } else {
+      const { data: newCustomer, error: custError } = await supabase
+        .from('Customers')
+        .insert({ phone, name: customerName, address, totalOrders: 1, deliveredOrders: 0, warnings: 0 })
         .select('id')
         .single();
-
-      if (orderError) throw orderError;
-
-      await supabase.from('OrderItems').insert([{
-        orderId: newOrder.id,
-        productId: product.id,
-        productName: product.name,
-        price: product.newPrice,
-       
-      }]);
-
-      toast.success('تم الطلب بنجاح!');
-      setCustomerName('');
-      setPhone('');
-      setAddress('');
-
-    } catch (err) {
-      console.error(err);
-      toast.error('حدث خطأ أثناء الطلب');
+        
+      if (custError) throw custError;
+      customerId = newCustomer.id;
     }
-  };
+
+    const { data: newOrder, error: orderError } = await supabase
+      .from('Orders')
+      .insert({
+        customerId,
+        phone,
+        address,
+        wilaya,
+        totalAmount: finalTotal,
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+      })
+      .select('id')
+      .single();
+
+    if (orderError) throw orderError;
+
+    await supabase.from('OrderItems').insert([{
+      orderId: newOrder.id,
+      productId: product.id,
+      productName: product.name,
+      price: product.newPrice,
+      quantity: quantity,
+    }]);
+
+    // ✅ Pixel: Purchase بعد النجاح مباشرة
+    ReactPixel.track('Purchase', {
+      value: finalTotal,
+      currency: 'DZD',
+      content_ids: [product.id],
+      content_name: product.name,
+      content_type: 'product',
+      num_items: quantity,
+    });
+
+    toast.success('تم الطلب بنجاح!');
+    
+    // إعادة تعيين الحقول
+    setCustomerName('');
+    setPhone('');
+    setAddress('');
+    setWilaya('');
+    setQuantity(1);
+
+  } catch (err) {
+    console.error(err);
+    toast.error('حدث خطأ أثناء الطلب');
+  }
+};
+
+
 
   return (
-    
-<div className="bg-white rounded-2xl shadow-sm border border-orange-100" id="order-form">
+    <div className="bg-white rounded-2xl shadow-sm border border-orange-100" id="order-form">
 
-      
-
-<div className="bg-orange-50 p-4 border-b border-orange-100">
-  <div className="flex gap-3 items-start mb-3">
-    {/* صورة المنتج */}
-    <div className="w-20 h-20 bg-white rounded-lg overflow-hidden border-2 border-orange-200 flex-shrink-0">
-      <img 
-        src={product.imageUrl} 
-        alt={product.name} 
-        className="w-full h-full object-cover"
-      />
-    </div>
-    
-    {/* معلومات المنتج */}
-    <div className="flex-1">
-      <h3 className="font-bold text-gray-900 text-base mb-1 leading-tight">
-        {product.name}
-      </h3>
-      <div className="flex items-center gap-2 text-xs text-gray-600">
-        <Truck size={14} className="text-orange-600" />
-        <span>توصيل ثابت: <span className="font-bold text-orange-600">500 دج</span></span>
-      </div>
-      <div className="mt-1 text-xs text-green-700 bg-green-50 px-2 py-0.5 rounded-full inline-block">
-        ✅ الدفع عند الاستلام
-      </div>
-    </div>
-  </div>
-
-  {/* مؤشر الكمية */}
-  <div className="flex items-center justify-between bg-white rounded-lg p-2 border border-orange-200">
-    <span className="font-bold text-gray-700 text-sm">الكمية:</span>
-    <div className="flex items-center gap-2">
-      <button 
-        type="button"
-        onClick={() => setQuantity(Math.max(1, quantity - 1))}
-        className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 font-bold text-lg flex items-center justify-center transition active:scale-95"
-      >
-        −
-      </button>
-      <span className="text-lg font-black text-gray-900 w-10 text-center">{quantity}</span>
-      <button 
-        type="button"
-        onClick={() => setQuantity(quantity + 1)}
-        className="w-8 h-8 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-bold text-lg flex items-center justify-center transition active:scale-95"
-      >
-        +
-      </button>
-    </div>
-  </div>
-</div>
-
-      
-      <div className="p-5">
-        <div className="mb-6 bg-gray-50 rounded-xl p-4 border border-gray-200 space-y-2 text-sm">
-          <div className="flex justify-between items-center">
-            <span className="font-bold">{product.newPrice.toLocaleString()} دج</span>
-            <span className="text-gray-500">سعر المنتج</span>
+      {/* 🆕 هيدر مصغر ومضغوط */}
+      <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 border-b border-orange-200">
+        <div className="flex gap-3 items-center mb-3">
+          <div className="w-16 h-16 bg-white rounded-xl overflow-hidden border-2 border-orange-300 flex-shrink-0 shadow-sm">
+            <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
           </div>
-          <div className="flex justify-between items-center">
-            <span className="font-bold">{DELIVERY_PRICE} دج</span>
-            <span className="text-gray-500 flex items-center gap-1">
-              التوصيل <Truck size={12}/>
-            </span>
+          <div className="flex-1">
+            <h3 className="font-bold text-gray-900 text-sm leading-tight mb-1">
+              {product.name}
+            </h3>
+            <div className="flex items-center gap-2 text-xs">
+              <span className="font-black text-orange-600">{product.newPrice.toLocaleString()} دج</span>
+              <span className="text-gray-400">•</span>
+              <span className="text-gray-600">توصيل {deliveryPrice} دج</span>
+            </div>
           </div>
-          <div className="h-px bg-gray-300 w-full border-t border-dashed my-1"></div>
+        </div>
+
+        {/* 🆕 الكمية في سطر واحد مضغوط */}
+        <div className="flex items-center justify-between bg-white rounded-lg p-2 border border-orange-200">
+          <span className="text-xs font-bold text-gray-700">الكمية:</span>
+          <div className="flex items-center gap-2">
+            <button 
+              type="button"
+              onClick={() => setQuantity(Math.max(1, quantity - 1))}
+              className="w-7 h-7 rounded-lg bg-gray-100 hover:bg-gray-200 font-bold flex items-center justify-center transition"
+            >
+              −
+            </button>
+            <span className="text-lg font-black text-gray-900 w-8 text-center">{quantity}</span>
+            <button 
+              type="button"
+              onClick={() => setQuantity(quantity + 1)}
+              className="w-7 h-7 rounded-lg bg-orange-500 hover:bg-orange-600 text-white font-bold flex items-center justify-center transition"
+            >
+              +
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="p-4">
+        {/* 🆕 فاتورة مصغرة جداً */}
+        <div className="mb-4 bg-gray-50 rounded-lg p-3 border border-gray-200 space-y-1 text-xs">
+          <div className="flex justify-between">
+            <span className="font-bold">{(product.newPrice * quantity).toLocaleString()} دج</span>
+            <span className="text-gray-600">المنتج</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="font-bold">{deliveryPrice} دج</span>
+            <span className="text-gray-600">التوصيل</span>
+          </div>
+          <div className="h-px bg-gray-300 my-1"></div>
           <div className="flex justify-between items-center pt-1">
-            <span className="text-2xl font-black text-green-600">
-              {finalTotal.toLocaleString()} <small>دج</small>
-            </span>
-            <span className="font-bold text-gray-900 flex items-center gap-1">
-              المجموع <Calculator size={16} className="text-gray-400"/>
-            </span>
+            <span className="text-xl font-black text-green-600">{finalTotal.toLocaleString()} <small className="text-sm">دج</small></span>
+            <span className="font-bold text-gray-900">المجموع</span>
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 mb-6">
-          <div className="text-center p-3 bg-green-50 rounded-lg border border-green-100">
-            <Truck className="mx-auto text-green-600" size={20} />
-            <p className="text-[10px] font-bold mt-1 text-green-700">توصيل سريع</p>
-          </div>
-          <div className="text-center p-3 bg-blue-50 rounded-lg border border-blue-100">
-            <ShieldCheck className="mx-auto text-blue-600" size={20} />
-            <p className="text-[10px] font-bold mt-1 text-blue-700">ضمان الجودة</p>
-          </div>
-          <div className="text-center p-3 bg-orange-50 rounded-lg border border-orange-100">
-            <Phone className="mx-auto text-orange-600" size={20} />
-            <p className="text-[10px] font-bold mt-1 text-orange-700">دعم 24/7</p>
-          </div>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-0" id="order-form-submit">
-
-  {/* عنوان الفورم */}
-  <div className="text-center pb-2 border-b border-gray-200">
-    <h4 className="text-lg font-bold text-gray-900 flex items-center justify-center gap-2">
-      ✍️ أدخل معلوماتك هنا
-    </h4>
-    <p className="text-xs text-gray-500 mt-1">املأ الحقول لإكمال طلبك</p>
-  </div>
-
-  <input 
-    value={customerName} 
-    onChange={e => setCustomerName(e.target.value)} 
-    placeholder="الاسم الكامل" 
-    className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition" 
-  />
-
+        {/* النموذج */}
+        <form onSubmit={handleSubmit} className="space-y-2" id="order-form-submit">
           
+          <input 
+            value={customerName} 
+            onChange={e => setCustomerName(e.target.value)} 
+            placeholder="الاسم الكامل" 
+            className="w-full p-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition" 
+            required
+          />
+
           <input 
             value={phone} 
             onChange={e => setPhone(e.target.value)} 
-            placeholder="رقم الهاتف" 
+            placeholder="رقم الهاتف (05XXXXXXXX)" 
             type="tel" 
-            className="w-full p-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition" 
+            className="w-full p-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition" 
+            required
           />
+
+          {/* 🆕 Dropdown الولايات */}
+          <div className="relative">
+            <select
+              value={wilaya}
+              onChange={e => setWilaya(e.target.value)}
+              disabled={loadingWilayas}
+              className="w-full p-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition appearance-none bg-white pr-8"
+              required
+            >
+              <option value="">{loadingWilayas ? 'جارٍ التحميل...' : 'اختر الولاية'}</option>
+              {wilayasList.map(w => (
+                <option key={w.id} value={w.name}>
+                  {w.name} - {w.price} دج
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          </div>
+
           <textarea 
             value={address} 
             onChange={e => setAddress(e.target.value)} 
-            placeholder="العنوان (الولاية والبلدية)" 
-            className="w-full p-3 border border-gray-200 rounded-lg h-24 resize-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition" 
+            placeholder="العنوان (البلدية والشارع)" 
+            className="w-full p-2.5 text-sm border border-gray-200 rounded-lg h-20 resize-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition" 
+            required
           />
-          <button  type="submit" 
-  onClick={() => {
+
+          {/* 🆕 الأيقونات في سطر واحد */}
+          <div className="flex items-center justify-around bg-gradient-to-r from-green-50 via-blue-50 to-purple-50 rounded-lg p-2 border border-gray-200 text-[10px] font-bold">
+            <div className="flex items-center gap-1 text-green-700">
+              <Truck size={14} />
+              <span>توصيل سريع</span>
+            </div>
+            <div className="flex items-center gap-1 text-blue-700">
+              <ShieldCheck size={14} />
+              <span>ضمان</span>
+            </div>
+            <div className="flex items-center gap-1 text-purple-700">
+              <Phone size={14} />
+              <span>دفع آمن</span>
+            </div>
+          </div>
+
+          {/* ✅ زر Desktop - الـ Pixel محفوظ بالكامل */}
+       {/* زر Desktop */}
+<button 
+  type="submit"
+  onMouseDown={() => {
+    // ✅ Pixel: InitiateCheckout عند الضغط
     ReactPixel.track('InitiateCheckout', {
-      productId: product.id,
+      content_ids: [product.id],
+      content_name: product.name,
       value: finalTotal,
       currency: 'DZD',
-      platform: 'desktop',
+      num_items: quantity,
     });
   }}
- 
-  className="hidden md:block w-full bg-green-600 text-white py-4 rounded-xl font-bold hover:bg-green-700 transition shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98]"
+  className="hidden md:block w-full bg-green-600 text-white py-3.5 rounded-xl font-bold hover:bg-green-700 transition shadow-lg hover:shadow-xl transform hover:scale-[1.02] active:scale-[0.98] text-sm"
 >
-  تأكيد الطلب
+  ✅ تأكيد الطلب الآن
 </button>
+
+
 
         </form>
       </div>
@@ -250,7 +314,7 @@ export default function ProductDetails() {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isFormFilled, setIsFormFilled] = useState(false); 
+  const [isFormFilled, setIsFormFilled] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -353,11 +417,9 @@ export default function ProductDetails() {
                 الأكثر طلباً
               </span>
               <div className="flex text-yellow-400">
-                <Star size={14} fill="currentColor" />
-                <Star size={14} fill="currentColor" />
-                <Star size={14} fill="currentColor" />
-                <Star size={14} fill="currentColor" />
-                <Star size={14} fill="currentColor" />
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} size={14} fill="currentColor" />
+                ))}
               </div>
             </div>
 
@@ -376,9 +438,10 @@ export default function ProductDetails() {
               </span>
             </div>
 
+            {/* 🆕 استخدام الوصف من قاعدة البيانات */}
             <div className="prose prose-sm text-gray-600">
               <h3 className="font-bold mb-2 text-gray-900">الوصف:</h3>
-              <p className="leading-relaxed">
+              <p className="leading-relaxed whitespace-pre-line">
                 {product.description || PRODUCT_DESCRIPTION}
               </p>
             </div>
@@ -387,66 +450,78 @@ export default function ProductDetails() {
 
         <div className="lg:col-span-5">
           <div className="sticky top-20 md:top-24">
-            <EmbeddedOrderForm product={product}onFieldsChange={setIsFormFilled}/>
+            <EmbeddedOrderForm product={product} onFieldsChange={setIsFormFilled} />
           </div>
         </div>
       </main>
 
-   {/* زر الموبايل الثابت */}
-      {product && (
-        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t-2 border-orange-200 shadow-2xl z-50 p-3">
-          <div className="flex items-center gap-3">
-            <div className="flex flex-col items-start">
-              {product.oldPrice && (
-                <span className="text-[10px] text-gray-400 line-through">
-                  {product.oldPrice.toLocaleString()} دج
-                </span>
-              )}
-              <span className="text-lg font-black text-green-600">
-                {product.newPrice.toLocaleString()} دج
-              </span>
-            </div>
+      {/* ✅ زر الموبايل الثابت - الـ Pixel محفوظ بالكامل */}
+  {/* زر الموبايل الثابت */}
+{/* زر الموبايل الثابت */}
+{product && (
+  <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t-2 border-orange-200 shadow-2xl z-50 p-3">
+    <div className="flex items-center gap-3">
+      <div className="flex flex-col items-start">
+        {product.oldPrice && (
+          <span className="text-[10px] text-gray-400 line-through">
+            {product.oldPrice.toLocaleString()} دج
+          </span>
+        )}
+        <span className="text-lg font-black text-green-600">
+          {product.newPrice.toLocaleString()} دج
+        </span>
+      </div>
 
-            <button 
+      <button 
+        onClick={() => {
+          if (isFormFilled) {
+            // ✅ Pixel: InitiateCheckout قبل الإرسال
+            const form = document.getElementById('order-form-submit') as HTMLFormElement;
+            if (form) {
+              // حساب السعر الحالي
+              const quantityEl = document.querySelector('.font-black.text-gray-900.w-8') as HTMLElement;
+              const currentQuantity = quantityEl ? parseInt(quantityEl.textContent || '1') : 1;
+              const totalEl = document.querySelector('.text-xl.font-black.text-green-600') as HTMLElement;
+              const totalText = totalEl?.textContent?.replace(/[^\d]/g, '') || '';
+              const currentTotal = parseInt(totalText) || (product.newPrice * currentQuantity + 500);
               
-onClick={() => {
-  if (isFormFilled) {
-    // حدث Pixel عند الإرسال من الهاتف
-    ReactPixel.track('InitiateCheckout', {
-      productId: product.id,
-      value: product.newPrice, 
-      currency: 'DZD',
-      platform: 'mobile',
-    });
-                  const formSubmit = document.getElementById('order-form-submit') as HTMLFormElement;
-                  if (formSubmit) {
-                    formSubmit.requestSubmit();
-                  }
-                } else {
-                  const firstInput = document.querySelector('input[placeholder="الاسم الكامل"]') as HTMLElement;
-                  if (firstInput) {
-                    firstInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    firstInput.classList.add('ring-4', 'ring-orange-300');
-                    setTimeout(() => firstInput.classList.remove('ring-4', 'ring-orange-300'), 2000);
-                    setTimeout(() => firstInput.focus(), 500);
-                  }
-                }
-              }}
-              className={`flex-1 py-4 rounded-xl font-bold text-base shadow-xl flex items-center justify-center gap-2 transition-all active:scale-95 ${
-                isFormFilled 
-                  ? 'bg-green-600 hover:bg-green-700 text-white' 
-                  : 'bg-orange-600 hover:bg-orange-700 text-white'
-              }`}
-            >
-              {isFormFilled ? (
-                <>✅ إرسال الطلب الآن</>
-              ) : (
-                <>📝 املأ المعلومات</>
-              )}
-            </button>
-          </div>
-        </div>
-      )}
+              ReactPixel.track('InitiateCheckout', {
+                content_ids: [product.id],
+                content_name: product.name,
+                value: currentTotal,
+                currency: 'DZD',
+                num_items: currentQuantity,
+              });
+              
+              form.requestSubmit();
+            }
+          } else {
+            const firstInput = document.querySelector('input[placeholder="الاسم الكامل"]') as HTMLElement;
+            if (firstInput) {
+              firstInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              firstInput.classList.add('ring-4', 'ring-orange-300');
+              setTimeout(() => firstInput.classList.remove('ring-4', 'ring-orange-300'), 2000);
+              setTimeout(() => firstInput.focus(), 500);
+            }
+          }
+        }}
+        className={`flex-1 py-4 rounded-xl font-bold text-base shadow-xl flex items-center justify-center gap-2 transition-all active:scale-95 ${
+          isFormFilled 
+            ? 'bg-green-600 hover:bg-green-700 text-white' 
+            : 'bg-orange-600 hover:bg-orange-700 text-white'
+        }`}
+      >
+        {isFormFilled ? (
+          <>✅ إرسال الطلب الآن</>
+        ) : (
+          <>📝 املأ المعلومات</>
+        )}
+      </button>
+    </div>
+  </div>
+)}
+
+
     </div>
   );
 }
