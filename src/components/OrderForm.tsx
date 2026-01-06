@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Product } from '@/types/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,58 +9,6 @@ import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { Badge } from '@/components/ui/badge';
 import ReactPixel from 'react-facebook-pixel';
-
-// 🆕 استيراد الولايات
-const ALGERIA_WILAYAS = [
-  { id: 1, name: 'أدرار', price: 900 },
-  { id: 2, name: 'الشلف', price: 600 },
-  { id: 3, name: 'الأغواط', price: 700 },
-  { id: 4, name: 'أم البواقي', price: 600 },
-  { id: 5, name: 'باتنة', price: 600 },
-  { id: 6, name: 'بجاية', price: 600 },
-  { id: 7, name: 'بسكرة', price: 700 },
-  { id: 8, name: 'بشار', price: 900 },
-  { id: 9, name: 'البليدة', price: 400 },
-  { id: 10, name: 'البويرة', price: 500 },
-  { id: 11, name: 'تمنراست', price: 1200 },
-  { id: 12, name: 'تبسة', price: 700 },
-  { id: 13, name: 'تلمسان', price: 700 },
-  { id: 14, name: 'تيارت', price: 600 },
-  { id: 15, name: 'تيزي وزو', price: 500 },
-  { id: 16, name: 'الجزائر', price: 400 },
-  { id: 17, name: 'الجلفة', price: 700 },
-  { id: 18, name: 'جيجل', price: 600 },
-  { id: 19, name: 'سطيف', price: 600 },
-  { id: 20, name: 'سعيدة', price: 700 },
-  { id: 21, name: 'سكيكدة', price: 600 },
-  { id: 22, name: 'سيدي بلعباس', price: 600 },
-  { id: 23, name: 'عنابة', price: 600 },
-  { id: 24, name: 'قالمة', price: 600 },
-  { id: 25, name: 'قسنطينة', price: 600 },
-  { id: 26, name: 'المدية', price: 500 },
-  { id: 27, name: 'مستغانم', price: 600 },
-  { id: 28, name: 'المسيلة', price: 600 },
-  { id: 29, name: 'معسكر', price: 600 },
-  { id: 30, name: 'ورقلة', price: 800 },
-  { id: 31, name: 'وهران', price: 600 },
-  { id: 32, name: 'البيض', price: 800 },
-  { id: 33, name: 'إليزي', price: 1200 },
-  { id: 34, name: 'برج بوعريريج', price: 600 },
-  { id: 35, name: 'بومرداس', price: 400 },
-  { id: 36, name: 'الطارف', price: 700 },
-  { id: 37, name: 'تندوف', price: 1200 },
-  { id: 38, name: 'تيسمسيلت', price: 600 },
-  { id: 39, name: 'الوادي', price: 800 },
-  { id: 40, name: 'خنشلة', price: 700 },
-  { id: 41, name: 'سوق أهراس', price: 700 },
-  { id: 42, name: 'تيبازة', price: 400 },
-  { id: 43, name: 'ميلة', price: 600 },
-  { id: 44, name: 'عين الدفلى', price: 500 },
-  { id: 45, name: 'النعامة', price: 800 },
-  { id: 46, name: 'عين تموشنت', price: 600 },
-  { id: 47, name: 'غرداية', price: 800 },
-  { id: 48, name: 'غليزان', price: 600 },
-];
 
 const DELIVERY_PRICE = 500;
 
@@ -79,21 +27,45 @@ export default function OrderForm({ cart, onRemoveFromCart, onUpdateQuantity, on
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
-  const [wilaya, setWilaya] = useState(''); // 🆕 state للولاية
+  const [wilaya, setWilaya] = useState('');
   const [orderNotes, setOrderNotes] = useState('');
   const [showNotes, setShowNotes] = useState(false);
+  
+  
+  const [wilayasList, setWilayasList] = useState<Array<{ id: number; name: string; price: number; active: boolean }>>([]);
+  const [loadingWilayas, setLoadingWilayas] = useState(true);
+
+  
+  useEffect(() => {
+    const loadWilayas = async () => {
+      const { data, error } = await supabase
+        .from('Wilayas')
+        .select('*')
+        .eq('active', true)
+        .order('name', { ascending: true });
+
+      if (error) {
+        console.error('Error loading wilayas:', error);
+        toast.error('فشل تحميل قائمة الولايات');
+      } else {
+        setWilayasList(data || []);
+      }
+      setLoadingWilayas(false);
+    };
+
+    loadWilayas();
+  }, []);
 
   const productsTotal = cart.reduce((sum, item) => sum + item.product.newPrice * item.quantity, 0);
   
-  // 🆕 حساب سعر التوصيل حسب الولاية المختارة
-  const selectedWilayaData = ALGERIA_WILAYAS.find(w => w.name === wilaya);
+ 
+  const selectedWilayaData = wilayasList.find(w => w.name === wilaya);
   const deliveryPrice = selectedWilayaData ? selectedWilayaData.price : DELIVERY_PRICE;
   const finalTotal = productsTotal + deliveryPrice;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // 🆕 التحقق من الولاية
     if (!customerName?.trim() || !phone?.trim() || !address?.trim() || !wilaya?.trim()) {
       toast.error('الرجاء ملء جميع الحقول المطلوبة بما في ذلك الولاية');
       return;
@@ -149,14 +121,13 @@ export default function OrderForm({ cart, onRemoveFromCart, onUpdateQuantity, on
         throw new Error('لم يتم تحديد معرف الزبون');
       }
 
-      // 🆕 إضافة الولاية للطلب
       const { data: newOrder, error: orderError } = await supabase
         .from('Orders')
         .insert({
           customerId,
           phone,
           address,
-          wilaya, // 🆕 حفظ الولاية
+          wilaya,
           totalAmount: finalTotal,
           status: 'pending',
           rejectionReason: null,
@@ -199,7 +170,7 @@ export default function OrderForm({ cart, onRemoveFromCart, onUpdateQuantity, on
       setCustomerName('');
       setPhone('');
       setAddress('');
-      setWilaya(''); // 🆕 إعادة تعيين الولاية
+      setWilaya('');
       setOrderNotes('');
       onClearCart();
 
@@ -222,7 +193,7 @@ export default function OrderForm({ cart, onRemoveFromCart, onUpdateQuantity, on
     <div className="flex flex-col h-full bg-white md:rounded-xl overflow-hidden font-sans">
       <div className="flex-1 overflow-y-auto p-3 space-y-4 custom-scrollbar">
         
-        {/* قائمة المنتجات */}
+        
         <div className="space-y-3">
           {cart.map(item => (
             <div key={item.product.id} className="flex gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100 transition-all hover:shadow-md hover:border-orange-100">
@@ -254,7 +225,7 @@ export default function OrderForm({ cart, onRemoveFromCart, onUpdateQuantity, on
           ))}
         </div>
 
-        {/* الفاتورة المفصلة */}
+       
         <div className="bg-white border-2 border-dashed border-gray-200 rounded-xl p-4 space-y-2 relative overflow-hidden group hover:border-orange-200 transition-colors">
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-orange-200 to-transparent opacity-50"></div>
           <div className="flex justify-between text-sm text-gray-600">
@@ -275,10 +246,10 @@ export default function OrderForm({ cart, onRemoveFromCart, onUpdateQuantity, on
           </div>
         </div>
 
-        {/* نموذج المعلومات */}
+       
         <form onSubmit={handleSubmit} className="space-y-0 pt-0">
           
-          {/* الاسم والهاتف */}
+       
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1">
               <Label className="text-[10px] font-bold text-gray-500">الاسم *</Label>
@@ -309,7 +280,7 @@ export default function OrderForm({ cart, onRemoveFromCart, onUpdateQuantity, on
             </div>
           </div>
 
-          {/* 🆕 Dropdown الولاية */}
+        
           <div className="space-y-1.5 pt-2">
             <Label className="text-xs font-bold text-gray-500 mr-1 flex items-center gap-1">
               <MapPin size={12}/> الولاية <span className="text-red-500">*</span>
@@ -319,11 +290,14 @@ export default function OrderForm({ cart, onRemoveFromCart, onUpdateQuantity, on
               <select
                 value={wilaya}
                 onChange={(e) => setWilaya(e.target.value)}
-                className="w-full pr-10 pl-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-900 focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all appearance-none cursor-pointer"
+                disabled={loadingWilayas}
+                className="w-full pr-10 pl-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm font-medium text-gray-900 focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 transition-all appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 required
               >
-                <option value="">اختر الولاية...</option>
-                {ALGERIA_WILAYAS.map(w => (
+                <option value="">
+                  {loadingWilayas ? 'جارٍ التحميل...' : 'اختر الولاية...'}
+                </option>
+                {wilayasList.map(w => (
                   <option key={w.id} value={w.name}>
                     {w.name} - {w.price} دج
                   </option>
@@ -333,7 +307,7 @@ export default function OrderForm({ cart, onRemoveFromCart, onUpdateQuantity, on
             </div>
           </div>
 
-          {/* العنوان */}
+          
           <div className="space-y-1.5">
             <Label className="text-xs font-bold text-gray-500 mr-1 flex items-center gap-1">
               <MapPin size={12}/> العنوان (البلدية والشارع) <span className="text-red-500">*</span>
@@ -351,7 +325,7 @@ export default function OrderForm({ cart, onRemoveFromCart, onUpdateQuantity, on
             </div>
           </div>
 
-          {/* ملاحظات قابلة للطي */}
+         
           <div className="pt-2">
             <button type="button" onClick={() => setShowNotes(!showNotes)} className="flex items-center gap-1 text-xs text-orange-600 font-bold hover:underline transition-all mb-2">
               {showNotes ? <ChevronUp size={14}/> : <ChevronDown size={14}/>}
@@ -369,7 +343,7 @@ export default function OrderForm({ cart, onRemoveFromCart, onUpdateQuantity, on
             )}
           </div>
 
-          {/* زر الإرسال */}
+         
           <Button 
             type="submit" 
             className="w-full bg-green-600 hover:bg-green-700 text-white h-14 rounded-xl shadow-lg shadow-green-600/20 font-bold text-xl flex items-center justify-center gap-2 mt-4 transition-all hover:scale-[1.01] active:scale-[0.98]"
