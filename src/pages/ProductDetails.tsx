@@ -24,23 +24,27 @@ interface Wilaya {
 const PRODUCT_DESCRIPTION = "الخيار الأمثل لمطبخك العصري. أداء قوي، تصميم متين، ونتائج مذهلة في كل مرة. احصل عليه الآن واستفد من العرض المحدود.";
 
 const EmbeddedOrderForm = ({ 
-  product, onFieldsChange 
+  product, 
+  onFieldsChange,
+  navigate 
 }: {  
   product: Product; 
-  onFieldsChange?: (filled: boolean) => void; 
+  onFieldsChange?: (filled: boolean) => void;
+  navigate: ReturnType<typeof useNavigate>; 
 }) => {
+
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
-  const [wilaya, setWilaya] = useState(''); // 🆕
+  const [wilaya, setWilaya] = useState(''); 
   const [quantity, setQuantity] = useState(1);
   
-  // 🆕 State للولايات
+  
   const [wilayasList, setWilayasList] = useState<Wilaya[]>([]);
   const [loadingWilayas, setLoadingWilayas] = useState(true);
   const [deliveryPrice, setDeliveryPrice] = useState(500);
 
-  // 🆕 تحميل الولايات من قاعدة البيانات
+
   useEffect(() => {
     const loadWilayas = async () => {
       const { data, error } = await supabase
@@ -59,7 +63,7 @@ const EmbeddedOrderForm = ({
     loadWilayas();
   }, []);
 
-  // 🆕 حساب سعر التوصيل عند تغيير الولاية
+  
   useEffect(() => {
     if (wilaya) {
       const selectedWilaya = wilayasList.find(w => w.name === wilaya);
@@ -69,7 +73,7 @@ const EmbeddedOrderForm = ({
     }
   }, [wilaya, wilayasList]);
 
-  // تحقق من ملء الحقول
+
   useEffect(() => {
     const isFilled = customerName.trim() !== '' && phone.trim() !== '' && address.trim() !== '' && wilaya.trim() !== '';
     onFieldsChange?.(isFilled);
@@ -129,7 +133,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       quantity: quantity,
     }]);
 
-    // ✅ Pixel: Purchase بعد النجاح مباشرة
+    // ✅ Pixel: Purchase بعد النجاح
     ReactPixel.track('Purchase', {
       value: finalTotal,
       currency: 'DZD',
@@ -141,12 +145,10 @@ const handleSubmit = async (e: React.FormEvent) => {
 
     toast.success('تم الطلب بنجاح!');
     
-    // إعادة تعيين الحقول
-    setCustomerName('');
-    setPhone('');
-    setAddress('');
-    setWilaya('');
-    setQuantity(1);
+    // ✅ الانتقال لصفحة الشكر
+    setTimeout(() => {
+      navigate(`/thank-you/${newOrder.id}`);
+    }, 1500);
 
   } catch (err) {
     console.error(err);
@@ -156,10 +158,11 @@ const handleSubmit = async (e: React.FormEvent) => {
 
 
 
+
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-orange-100" id="order-form">
 
-      {/* 🆕 هيدر مصغر ومضغوط */}
+    
       <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 border-b border-orange-200">
         <div className="flex gap-3 items-center mb-3">
           <div className="w-16 h-16 bg-white rounded-xl overflow-hidden border-2 border-orange-300 flex-shrink-0 shadow-sm">
@@ -177,7 +180,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           </div>
         </div>
 
-        {/* 🆕 الكمية في سطر واحد مضغوط */}
+       
         <div className="flex items-center justify-between bg-white rounded-lg p-2 border border-orange-200">
           <span className="text-xs font-bold text-gray-700">الكمية:</span>
           <div className="flex items-center gap-2">
@@ -201,7 +204,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       </div>
 
       <div className="p-4">
-        {/* 🆕 فاتورة مصغرة جداً */}
+      
         <div className="mb-4 bg-gray-50 rounded-lg p-3 border border-gray-200 space-y-1 text-xs">
           <div className="flex justify-between">
             <span className="font-bold">{(product.newPrice * quantity).toLocaleString()} دج</span>
@@ -218,7 +221,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           </div>
         </div>
 
-        {/* النموذج */}
+   
         <form onSubmit={handleSubmit} className="space-y-2" id="order-form-submit">
           
           <input 
@@ -238,7 +241,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             required
           />
 
-          {/* 🆕 Dropdown الولايات */}
+        
           <div className="relative">
             <select
               value={wilaya}
@@ -265,7 +268,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             required
           />
 
-          {/* 🆕 الأيقونات في سطر واحد */}
+       
           <div className="flex items-center justify-around bg-gradient-to-r from-green-50 via-blue-50 to-purple-50 rounded-lg p-2 border border-gray-200 text-[10px] font-bold">
             <div className="flex items-center gap-1 text-green-700">
               <Truck size={14} />
@@ -281,12 +284,11 @@ const handleSubmit = async (e: React.FormEvent) => {
             </div>
           </div>
 
-          {/* ✅ زر Desktop - الـ Pixel محفوظ بالكامل */}
-       {/* زر Desktop */}
+       
 <button 
   type="submit"
   onMouseDown={() => {
-    // ✅ Pixel: InitiateCheckout عند الضغط
+  
     ReactPixel.track('InitiateCheckout', {
       content_ids: [product.id],
       content_name: product.name,
@@ -438,7 +440,7 @@ export default function ProductDetails() {
               </span>
             </div>
 
-            {/* 🆕 استخدام الوصف من قاعدة البيانات */}
+          
             <div className="prose prose-sm text-gray-600">
               <h3 className="font-bold mb-2 text-gray-900">الوصف:</h3>
               <p className="leading-relaxed whitespace-pre-line">
@@ -450,14 +452,17 @@ export default function ProductDetails() {
 
         <div className="lg:col-span-5">
           <div className="sticky top-20 md:top-24">
-            <EmbeddedOrderForm product={product} onFieldsChange={setIsFormFilled} />
+            <EmbeddedOrderForm 
+  product={product} 
+  onFieldsChange={setIsFormFilled}
+  navigate={navigate} 
+/>
+
           </div>
         </div>
       </main>
 
-      {/* ✅ زر الموبايل الثابت - الـ Pixel محفوظ بالكامل */}
-  {/* زر الموبايل الثابت */}
-{/* زر الموبايل الثابت */}
+      
 {product && (
   <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t-2 border-orange-200 shadow-2xl z-50 p-3">
     <div className="flex items-center gap-3">
@@ -475,7 +480,7 @@ export default function ProductDetails() {
       <button 
         onClick={() => {
           if (isFormFilled) {
-            // ✅ Pixel: InitiateCheckout قبل الإرسال
+          
             const form = document.getElementById('order-form-submit') as HTMLFormElement;
             if (form) {
               // حساب السعر الحالي
