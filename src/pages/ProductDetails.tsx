@@ -17,7 +17,8 @@ interface Product {
 interface Wilaya {
   id: number;
   name: string;
-  price: number;
+  home_price: number;
+  office_price: number;
   active: boolean;
 }
 
@@ -38,6 +39,7 @@ const EmbeddedOrderForm = ({
   const [address, setAddress] = useState('');
   const [wilaya, setWilaya] = useState(''); 
   const [quantity, setQuantity] = useState(1);
+  const [deliveryType, setDeliveryType] = useState<'home' | 'office'>('home');
   
   
   const [wilayasList, setWilayasList] = useState<Wilaya[]>([]);
@@ -49,7 +51,7 @@ const EmbeddedOrderForm = ({
     const loadWilayas = async () => {
       const { data, error } = await supabase
         .from('Wilayas')
-        .select('id, name, price, active')
+        .select('id, name, home_price, office_price, active')
         .eq('active', true)
         .order('name', { ascending: true });
 
@@ -65,13 +67,14 @@ const EmbeddedOrderForm = ({
 
   
   useEffect(() => {
-    if (wilaya) {
-      const selectedWilaya = wilayasList.find(w => w.name === wilaya);
-      if (selectedWilaya) {
-        setDeliveryPrice(selectedWilaya.price);
-      }
-    }
-  }, [wilaya, wilayasList]);
+    const selectedWilaya = wilayasList.find(w => w.name === wilaya)
+    const newDeliveryPrice = selectedWilaya
+      ? deliveryType === 'home'
+        ? selectedWilaya.home_price
+        : selectedWilaya.office_price
+      : 500
+    setDeliveryPrice(newDeliveryPrice);
+  }, [wilaya, wilayasList, deliveryType]);
 
 
   useEffect(() => {
@@ -117,6 +120,8 @@ const handleSubmit = async (e: React.FormEvent) => {
         address,
         wilaya,
         totalAmount: finalTotal,
+        delivery_type: deliveryType,
+        delivery_price: deliveryPrice,
         status: 'pending',
         createdAt: new Date().toISOString(),
       })
@@ -254,11 +259,32 @@ const handleSubmit = async (e: React.FormEvent) => {
               <option value="">{loadingWilayas ? 'جارٍ التحميل...' : 'اختر الولاية'}</option>
               {wilayasList.map(w => (
                 <option key={w.id} value={w.name}>
-                  {w.name} - {w.price} دج
+                  {w.name} - {deliveryType === 'home' ? w.home_price : w.office_price} دج
                 </option>
               ))}
             </select>
             <ChevronDown className="absolute left-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          </div>
+
+          <div className="flex gap-4 mt-2">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                value="home"
+                checked={deliveryType === 'home'}
+                onChange={() => setDeliveryType('home')}
+              />
+              <span>🏠 توصيل للمنزل</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                value="office"
+                checked={deliveryType === 'office'}
+                onChange={() => setDeliveryType('office')}
+              />
+              <span>📦 استلام من المكتب</span>
+            </label>
           </div>
 
           <textarea 

@@ -29,18 +29,19 @@ export default function OrderForm({ cart, onRemoveFromCart, onUpdateQuantity, on
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
   const [wilaya, setWilaya] = useState('');
+  const [deliveryType, setDeliveryType] = useState<'home' | 'office'>('home');
   const [orderNotes, setOrderNotes] = useState('');
   const [showNotes, setShowNotes] = useState(false);
   
   
-  const [wilayasList, setWilayasList] = useState<Array<{ id: number; name: string; price: number; active: boolean }>>([]);
+  const [wilayasList, setWilayasList] = useState<Array<{ id: number; name: string; home_price: number; office_price: number; active: boolean }>>([]);
   const [loadingWilayas, setLoadingWilayas] = useState(true);
 
   
   const { data: wilayasData } = useQuery({
     queryKey: ['wilayas'],
     queryFn: async () => {
-      const { data } = await supabase.from('Wilayas').select('id, name, price')
+      const { data } = await supabase.from('Wilayas').select('id, name, home_price, office_price, active')
       return data
     },
     staleTime: 60 * 60 * 1000,
@@ -56,8 +57,12 @@ export default function OrderForm({ cart, onRemoveFromCart, onUpdateQuantity, on
   const productsTotal = cart.reduce((sum, item) => sum + item.product.newPrice * item.quantity, 0);
   
  
-  const selectedWilayaData = wilayasList.find(w => w.name === wilaya);
-  const deliveryPrice = selectedWilayaData ? selectedWilayaData.price : DELIVERY_PRICE;
+  const selectedWilaya = wilayasList.find(w => w.name === wilaya)
+  const deliveryPrice = selectedWilaya
+    ? deliveryType === 'home'
+      ? selectedWilaya.home_price
+      : selectedWilaya.office_price
+    : 500;
   const finalTotal = productsTotal + deliveryPrice;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -126,6 +131,8 @@ export default function OrderForm({ cart, onRemoveFromCart, onUpdateQuantity, on
           address,
           wilaya,
           totalAmount: finalTotal,
+          delivery_type: deliveryType,
+          delivery_price: deliveryPrice,
           status: 'pending',
           rejectionReason: null,
           createdAt: new Date().toISOString(),
@@ -296,11 +303,32 @@ export default function OrderForm({ cart, onRemoveFromCart, onUpdateQuantity, on
                 </option>
                 {wilayasList.map(w => (
                   <option key={w.id} value={w.name}>
-                    {w.name} - {w.price} دج
+                    {w.name} - {deliveryType === 'home' ? w.home_price : w.office_price} دج
                   </option>
                 ))}
               </select>
               <ChevronDown className="absolute left-3 top-3 text-gray-400 w-5 h-5 pointer-events-none" />
+            </div>
+
+            <div className="flex gap-4 mt-2">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  value="home"
+                  checked={deliveryType === 'home'}
+                  onChange={() => setDeliveryType('home')}
+                />
+                <span>🏠 توصيل للمنزل</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  value="office"
+                  checked={deliveryType === 'office'}
+                  onChange={() => setDeliveryType('office')}
+                />
+                <span>📦 استلام من المكتب</span>
+              </label>
             </div>
           </div>
 

@@ -7,7 +7,8 @@ import { useQuery } from '@tanstack/react-query';
 interface Wilaya {
   id: number;
   name: string;
-  price: number;
+  home_price: number;
+  office_price: number;
   active: boolean;
 }
 
@@ -21,7 +22,7 @@ export default function ShippingOptions() {
   const { data: wilayasData } = useQuery({
     queryKey: ['wilayas'],
     queryFn: async () => {
-      const { data } = await supabase.from('Wilayas').select('id, name, price')
+      const { data } = await supabase.from('Wilayas').select('id, name, home_price, office_price, active')
       return data
     },
     staleTime: 60 * 60 * 1000,
@@ -45,7 +46,7 @@ export default function ShippingOptions() {
       const updates = wilayas.map(w => 
         supabase
           .from('Wilayas')
-          .update({ price: w.price, active: w.active, updated_at: new Date().toISOString() })
+          .update({ home_price: w.home_price, office_price: w.office_price, active: w.active, updated_at: new Date().toISOString() })
           .eq('id', w.id)
       );
 
@@ -60,13 +61,13 @@ export default function ShippingOptions() {
     setLoading(false);
   };
 
-  const handleWilayaChange = (id: number, field: 'price' | 'active', value: any) => {
+  const handleWilayaChange = (id: number, field: 'home_price' | 'office_price' | 'active', value: any) => {
     setWilayas(prev => prev.map(w => w.id === id ? { ...w, [field]: value } : w));
   };
 
   const applyGlobalRate = () => {
     if (window.confirm(`هل أنت متأكد من تعميم السعر ${globalRate} دج على جميع الولايات؟`)) {
-      setWilayas(prev => prev.map(w => ({ ...w, price: globalRate })));
+      setWilayas(prev => prev.map(w => ({ ...w, home_price: globalRate })));
       toast.info('تم التطبيق محلياً. اضغط "حفظ التغييرات" لحفظها في قاعدة البيانات.');
     }
   };
@@ -155,7 +156,8 @@ export default function ShippingOptions() {
                       <th className="px-6 py-3">الرقم</th>
                       <th className="px-6 py-3">الولاية</th>
                       <th className="px-6 py-3">الحالة</th>
-                      <th className="px-6 py-3">السعر (دج)</th>
+                      <th className="px-6 py-3">منزل 🏠 (دج)</th>
+                      <th className="px-6 py-3">مكتب 📦 (دج)</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-50">
@@ -174,8 +176,16 @@ export default function ShippingOptions() {
                         <td className="px-6 py-3">
                           <input 
                             type="number" 
-                            value={w.price} 
-                            onChange={(e) => handleWilayaChange(w.id, 'price', Number(e.target.value))} 
+                            value={w.home_price} 
+                            onChange={(e) => handleWilayaChange(w.id, 'home_price', Number(e.target.value))} 
+                            className="w-28 bg-gray-50 border border-gray-200 rounded-lg p-2 font-bold text-sm focus:border-orange-500 outline-none" 
+                          />
+                        </td>
+                        <td className="px-6 py-3">
+                          <input 
+                            type="number" 
+                            value={w.office_price} 
+                            onChange={(e) => handleWilayaChange(w.id, 'office_price', Number(e.target.value))} 
                             className="w-28 bg-gray-50 border border-gray-200 rounded-lg p-2 font-bold text-sm focus:border-orange-500 outline-none" 
                           />
                         </td>
