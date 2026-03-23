@@ -20,6 +20,7 @@ interface Wilaya {
   home_price: number;
   office_price: number;
   active: boolean;
+  wilaya_number: number;
 }
 
 const PRODUCT_DESCRIPTION = "الخيار الأمثل لمطبخك العصري. أداء قوي، تصميم متين، ونتائج مذهلة في كل مرة. احصل عليه الآن واستفد من العرض المحدود.";
@@ -51,9 +52,9 @@ const EmbeddedOrderForm = ({
     const loadWilayas = async () => {
       const { data, error } = await supabase
         .from('Wilayas')
-        .select('id, name, home_price, office_price, active')
+        .select('id, name, home_price, office_price, active, wilaya_number')
         .eq('active', true)
-        .order('name', { ascending: true });
+        .order('wilaya_number', { ascending: true });
 
       if (error) {
         console.error('Error loading wilayas:', error);
@@ -259,7 +260,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               <option value="">{loadingWilayas ? 'جارٍ التحميل...' : 'اختر الولاية'}</option>
               {wilayasList.map(w => (
                 <option key={w.id} value={w.name}>
-                  {w.name} - {deliveryType === 'home' ? w.home_price : w.office_price} دج
+                  {w.wilaya_number} - {w.name} - {deliveryType === 'home' ? w.home_price : w.office_price} دج
                 </option>
               ))}
             </select>

@@ -656,6 +656,8 @@ useEffect(() => {
         <TableHead className="text-right font-bold text-gray-700 py-4 w-[260px]">الإجراءات</TableHead>
         <TableHead className="text-right font-bold text-gray-700">الحالة</TableHead>
         <TableHead className="text-right font-bold text-gray-700">المبلغ</TableHead>
+        <TableHead>التوصيل</TableHead>
+        <TableHead>سعر التوصيل</TableHead>
         <TableHead className="text-right font-bold text-gray-700">الولاية</TableHead>
         <TableHead className="text-right font-bold text-gray-700">العنوان</TableHead>
         <TableHead className="text-right font-bold text-gray-700">الهاتف</TableHead>
@@ -792,6 +794,12 @@ useEffect(() => {
 
               
               <TableCell className="font-mono text-gray-700 font-medium">{order.totalAmount?.toLocaleString('ar-DZ')} دج</TableCell>
+<TableCell>
+  {(order as any).delivery_type === 'home' ? '🏠 منزل' : '📦 مكتب'}
+</TableCell>
+<TableCell>
+  {(order as any).delivery_price ? `${(order as any).delivery_price} دج` : '-'}
+</TableCell>
 
 
 <TableCell className="font-medium text-gray-700">

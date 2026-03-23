@@ -34,14 +34,14 @@ export default function OrderForm({ cart, onRemoveFromCart, onUpdateQuantity, on
   const [showNotes, setShowNotes] = useState(false);
   
   
-  const [wilayasList, setWilayasList] = useState<Array<{ id: number; name: string; home_price: number; office_price: number; active: boolean }>>([]);
+  const [wilayasList, setWilayasList] = useState<Array<{ id: number; name: string; home_price: number; office_price: number; active: boolean; wilaya_number: number }>>([]);
   const [loadingWilayas, setLoadingWilayas] = useState(true);
 
   
   const { data: wilayasData } = useQuery({
     queryKey: ['wilayas'],
     queryFn: async () => {
-      const { data } = await supabase.from('Wilayas').select('id, name, home_price, office_price, active')
+      const { data } = await supabase.from('Wilayas').select('id, name, home_price, office_price, active, wilaya_number').order('wilaya_number', { ascending: true })
       return data
     },
     staleTime: 60 * 60 * 1000,
@@ -303,7 +303,7 @@ export default function OrderForm({ cart, onRemoveFromCart, onUpdateQuantity, on
                 </option>
                 {wilayasList.map(w => (
                   <option key={w.id} value={w.name}>
-                    {w.name} - {deliveryType === 'home' ? w.home_price : w.office_price} دج
+                    {w.wilaya_number} - {w.name} - {deliveryType === 'home' ? w.home_price : w.office_price} دج
                   </option>
                 ))}
               </select>
