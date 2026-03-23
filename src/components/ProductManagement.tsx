@@ -35,6 +35,8 @@ export default function ProductManagement() {
   const [loading, setLoading] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [variants, setVariants] = useState<{color_name: string, color_hex: string}[]>([])
+  const [newColor, setNewColor] = useState({ color_name: '', color_hex: '#000000' })
 
   // 🆕 إضافة description
   const [formData, setFormData] = useState({
@@ -83,7 +85,26 @@ export default function ProductManagement() {
     });
     setEditingProduct(null);
     setImageFile(null);
+    setVariants([])
+    setNewColor({ color_name: '', color_hex: '#000000' })
   };
+
+  // إضافة لون جديد
+  const handleAddColor = () => {
+    if (!newColor.color_name) return
+    setVariants([...variants, newColor])
+    setNewColor({ color_name: '', color_hex: '#000000' })
+  }
+
+  // حذف لون
+  const handleRemoveColor = (index: number) => {
+    setVariants(variants.filter((_, i) => i !== index))
+  }
+
+  const loadVariants = async (productId: string) => {
+    const { data } = await supabase.from('product_variants').select('color_name, color_hex').eq('product_id', productId)
+    if (data) setVariants(data)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -160,6 +181,14 @@ export default function ProductManagement() {
         editingProduct ? 'تم تعديل المنتج بنجاح' : 'تم إضافة المنتج بنجاح'
       );
 
+      if (variants.length > 0 && (editingProduct?.id || result.data?.[0]?.id)) {
+        const productId = editingProduct?.id || result.data?.[0]?.id
+        await supabase.from('product_variants').delete().eq('product_id', productId)
+        await supabase.from('product_variants').insert(
+          variants.map(v => ({ product_id: productId, color_name: v.color_name, color_hex: v.color_hex }))
+        )
+      }
+
       loadProducts();
       resetForm();
       setIsDialogOpen(false);
@@ -182,6 +211,7 @@ export default function ProductManagement() {
       description: product.description || '', // 🆕
     });
     setImageFile(null);
+    loadVariants(product.id);
     setIsDialogOpen(true);
   };
 
@@ -304,6 +334,45 @@ export default function ProductManagement() {
                   <p className="text-xs text-gray-400 text-right">
                     {formData.description.length}/1000 حرف
                   </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">الألوان المتوفرة (اختياري)</label>
+                  
+                  {/* عرض الألوان المضافة */}
+                  <div className="flex flex-wrap gap-2">
+                    {variants.map((v, i) => (
+                      <div key={i} className="flex items-center gap-1 bg-gray-100 rounded-full px-3 py-1">
+                        <div className="w-4 h-4 rounded-full border" style={{ backgroundColor: v.color_hex }} />
+                        <span className="text-sm">{v.color_name}</span>
+                        <button type="button" onClick={() => handleRemoveColor(i)} className="text-red-500 text-xs ml-1">✕</button>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* إضافة لون جديد */}
+                  <div className="flex gap-2 items-center">
+                    <input
+                      type="color"
+                      value={newColor.color_hex}
+                      onChange={e => setNewColor({...newColor, color_hex: e.target.value})}
+                      className="w-10 h-10 rounded cursor-pointer border"
+                    />
+                    <input
+                      type="text"
+                      placeholder="اسم اللون (مثال: أحمر)"
+                      value={newColor.color_name}
+                      onChange={e => setNewColor({...newColor, color_name: e.target.value})}
+                      className="border rounded px-2 py-1 text-sm flex-1"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddColor}
+                      className="bg-orange-500 text-white px-3 py-1 rounded text-sm"
+                    >
+                      + إضافة
+                    </button>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

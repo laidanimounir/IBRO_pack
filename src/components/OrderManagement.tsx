@@ -67,7 +67,8 @@ const loadOrders = async () => {
     .from('Orders')
     .select(`
       *,
-      Customers (id, name, phone, isReliable)
+      Customers (id, name, phone, isReliable),
+      OrderItems ( selected_color )
     `)
     .range((page - 1) * pageSize, page * pageSize - 1); 
   if (error) {
@@ -657,6 +658,7 @@ useEffect(() => {
         <TableHead className="text-right font-bold text-gray-700">الحالة</TableHead>
         <TableHead className="text-right font-bold text-gray-700">المبلغ</TableHead>
         <TableHead>التوصيل</TableHead>
+        <TableHead>اللون</TableHead>
         <TableHead>سعر التوصيل</TableHead>
         <TableHead className="text-right font-bold text-gray-700">الولاية</TableHead>
         <TableHead className="text-right font-bold text-gray-700">العنوان</TableHead>
@@ -796,6 +798,11 @@ useEffect(() => {
               <TableCell className="font-mono text-gray-700 font-medium">{order.totalAmount?.toLocaleString('ar-DZ')} دج</TableCell>
 <TableCell>
   {(order as any).delivery_type === 'home' ? '🏠 منزل' : '📦 مكتب'}
+</TableCell>
+<TableCell>
+  {((order as any).OrderItems || []).find((item: any) => item.selected_color)
+    ? ((order as any).OrderItems || []).find((item: any) => item.selected_color)?.selected_color
+    : '-'}
 </TableCell>
 <TableCell>
   {(order as any).delivery_price ? `${(order as any).delivery_price} دج` : '-'}

@@ -41,12 +41,25 @@ const EmbeddedOrderForm = ({
   const [wilaya, setWilaya] = useState(''); 
   const [quantity, setQuantity] = useState(1);
   const [deliveryType, setDeliveryType] = useState<'home' | 'office'>('home');
+  const [variants, setVariants] = useState<{color_name: string, color_hex: string}[]>([])
+  const [selectedColor, setSelectedColor] = useState<string>('')
   
   
   const [wilayasList, setWilayasList] = useState<Wilaya[]>([]);
   const [loadingWilayas, setLoadingWilayas] = useState(true);
   const [deliveryPrice, setDeliveryPrice] = useState(500);
 
+
+  useEffect(() => {
+    const loadVariants = async (productId: string) => {
+      const { data } = await supabase
+        .from('product_variants')
+        .select('color_name, color_hex')
+        .eq('product_id', productId)
+      if (data) setVariants(data)
+    }
+    loadVariants(product.id)
+  }, [product.id]);
 
   useEffect(() => {
     const loadWilayas = async () => {
@@ -90,6 +103,11 @@ const handleSubmit = async (e: React.FormEvent) => {
   if (!customerName?.trim() || !phone?.trim() || !address?.trim() || !wilaya?.trim()) {
     toast.error('الرجاء ملء جميع الحقول المطلوبة');
     return;
+  }
+
+  if (variants.length > 0 && !selectedColor) {
+    toast.error('الرجاء اختيار اللون')
+    return
   }
 
   try {
@@ -137,6 +155,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       productName: product.name,
       price: product.newPrice,
       quantity: quantity,
+      selected_color: selectedColor || null
     }]);
 
     // ✅ Pixel: Purchase بعد النجاح
@@ -184,6 +203,29 @@ const handleSubmit = async (e: React.FormEvent) => {
               <span className="text-gray-400">•</span>
               <span className="text-gray-600">توصيل {deliveryPrice} دج</span>
             </div>
+            {variants.length > 0 && (
+              <div className="space-y-2 mt-2">
+                <p className="text-sm font-medium">
+                  اللون: <span className="text-orange-500">{selectedColor || 'اختر لوناً'}</span>
+                </p>
+                <div className="flex gap-2 flex-wrap">
+                  {variants.map((v, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => setSelectedColor(v.color_name)}
+                      className={`w-8 h-8 rounded-full border-2 transition-all ${
+                        selectedColor === v.color_name
+                          ? 'border-orange-500 scale-110'
+                          : 'border-gray-300'
+                      }`}
+                      style={{ backgroundColor: v.color_hex }}
+                      title={v.color_name}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
