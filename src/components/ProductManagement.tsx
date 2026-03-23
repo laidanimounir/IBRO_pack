@@ -17,6 +17,7 @@ import {
 import { Pencil, Trash2, Plus, Star, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
+import { compressImage } from '../lib/imageUtils';
 
 import {
   Dialog,
@@ -103,7 +104,8 @@ export default function ProductManagement() {
       let finalImageUrl = formData.imageUrl;
 
       if (imageFile) {
-        const fileExt = imageFile.name.split('.').pop();
+        const compressedFile = await compressImage(imageFile)
+        const fileExt = compressedFile.name.split('.').pop();
         const fileName = `${Date.now()}-${Math.random()
           .toString(36)
           .substring(7)}.${fileExt}`;
@@ -111,7 +113,7 @@ export default function ProductManagement() {
 
         const { error: uploadError } = await supabase.storage
           .from('images')
-          .upload(filePath, imageFile);
+          .upload(filePath, compressedFile);
 
         if (uploadError) throw uploadError;
 

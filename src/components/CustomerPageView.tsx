@@ -3,6 +3,7 @@ import { ShoppingBag, Search } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
 import { useQuery } from '@tanstack/react-query';
+import { getOptimizedImageUrl } from '../lib/imageUtils';
 
 type Product = {
   id: string;
@@ -185,7 +186,7 @@ export default function CustomerPageView({ settings }: { settings: SettingsProps
                
                <div className="flex flex-col md:flex-row gap-6 items-center bg-gray-50/50 p-6 rounded-3xl border border-gray-100 hover:border-gray-200 transition-colors cursor-pointer group">
                   <div className="w-full md:w-40 h-40 bg-white rounded-2xl shrink-0 shadow-sm flex items-center justify-center overflow-hidden p-4">
-                     <img src={featuredProduct.imageUrl} alt={featuredProduct.name} className="w-full h-full object-contain" />
+                     <img src={getOptimizedImageUrl(featuredProduct.imageUrl, 800)} alt={featuredProduct.name} className="w-full h-full object-contain" />
                   </div>
                   <div className="flex-1 w-full text-center md:text-right">
                      <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
@@ -243,7 +244,7 @@ export default function CustomerPageView({ settings }: { settings: SettingsProps
                                     -{discount}%
                                  </span>
                               )}
-                              <img src={product.imageUrl} alt={product.name} className="w-full h-full object-contain p-2 group-hover:scale-110 transition-transform duration-500" />
+                              <img src={getOptimizedImageUrl(product.imageUrl, 400)} alt={product.name} className="w-full h-full object-contain p-2 group-hover:scale-110 transition-transform duration-500" />
                            </div>
                            <h4 className="text-sm md:text-base font-bold text-gray-900 mb-1 leading-tight group-hover:text-[var(--primary)] transition-colors line-clamp-2" style={{ '--primary': primaryColor } as any}>
                               {product.name}

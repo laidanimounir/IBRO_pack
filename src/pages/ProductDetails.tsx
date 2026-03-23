@@ -166,6 +166,7 @@ const handleSubmit = async (e: React.FormEvent) => {
       <div className="bg-gradient-to-br from-orange-50 to-orange-100 p-4 border-b border-orange-200">
         <div className="flex gap-3 items-center mb-3">
           <div className="w-16 h-16 bg-white rounded-xl overflow-hidden border-2 border-orange-300 flex-shrink-0 shadow-sm">
+
             <img src={product.imageUrl} alt={product.name} className="w-full h-full object-cover" />
           </div>
           <div className="flex-1">
@@ -401,6 +402,7 @@ export default function ProductDetails() {
       <main className="container mx-auto px-4 py-6 flex flex-col-reverse lg:grid lg:grid-cols-12 gap-8 max-w-4xl">
         <div className="lg:col-span-7 space-y-6">
           <div className="bg-white p-4 rounded-2xl border border-gray-100 relative">
+
             <img 
               src={product.imageUrl} 
               alt={product.name} 
