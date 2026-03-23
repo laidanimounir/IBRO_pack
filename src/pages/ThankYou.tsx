@@ -46,7 +46,7 @@ export default function ThankYou() {
     try {
       const { data: orderData, error: orderError } = await supabase
         .from('Orders')
-        .select('*')
+        .select('id, customerId, phone, address, wilaya, totalAmount, status, createdAt')
         .eq('id', orderId)
         .single();
 
@@ -55,7 +55,7 @@ export default function ThankYou() {
 
       const { data: itemsData, error: itemsError } = await supabase
         .from('OrderItems')
-        .select('*')
+        .select('productName, quantity, price')
         .eq('orderId', orderId);
 
       if (itemsError) throw itemsError;

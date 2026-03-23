@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ShoppingBag, Search } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
 
 type Product = {
   id: string;
@@ -40,30 +41,28 @@ export default function CustomerPageView({ settings }: { settings: SettingsProps
   const [loading, setLoading] = useState(true);
 
   // 🆕 جلب المنتجات من قاعدة البيانات
+  const { data: productsData } = useQuery({
+    queryKey: ['products'],
+    queryFn: async () => {
+      const { data } = await supabase.from('Products')
+        .select('id, name, oldPrice, newPrice, imageUrl, isFeatured, isActive')
+        .eq('isActive', true)
+      return data
+    },
+    staleTime: 5 * 60 * 1000,
+  })
+
   useEffect(() => {
-    const loadProducts = async () => {
-      const { data, error } = await supabase
-        .from('Products')
-        .select('*')
-        .order('createdAt', { ascending: false });
-
-      if (error) {
-        console.error('Error loading products:', error);
-        toast.error('فشل تحميل المنتجات');
-      } else {
-        const allProducts = data || [];
-        // فصل المنتج المميز
-        const featured = allProducts.find(p => p.isFeatured);
-        const regular = allProducts.filter(p => !p.isFeatured);
-        
-        setFeaturedProduct(featured || null);
-        setProducts(regular);
-      }
+    if (productsData) {
+      const allProducts = productsData as any[];
+      const featured = allProducts.find(p => p.isFeatured);
+      const regular = allProducts.filter(p => !p.isFeatured);
+      
+      setFeaturedProduct(featured || null);
+      setProducts(regular);
       setLoading(false);
-    };
-
-    loadProducts();
-  }, []);
+    }
+  }, [productsData]);
 
   const primaryColor = settings.primaryColor || '#f97316';
   const heroImage = settings.heroImageUrl && settings.heroImageUrl.length > 0 

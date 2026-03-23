@@ -49,7 +49,7 @@ const EmbeddedOrderForm = ({
     const loadWilayas = async () => {
       const { data, error } = await supabase
         .from('Wilayas')
-        .select('*')
+        .select('id, name, price, active')
         .eq('active', true)
         .order('name', { ascending: true });
 
@@ -321,7 +321,7 @@ export default function ProductDetails() {
   useEffect(() => {
     const fetchProduct = async () => {
       if (!id) return;
-      const { data } = await supabase.from('Products').select('*').eq('id', id).single();
+      const { data } = await supabase.from('Products').select('id, name, oldPrice, newPrice, imageUrl, description').eq('id', id).single();
       if (data) setProduct(data);
       setLoading(false);
     };

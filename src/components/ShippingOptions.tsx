@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Save, Truck, Search, RefreshCw, AlertCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'sonner';
+import { useQuery } from '@tanstack/react-query';
 
 interface Wilaya {
   id: number;
@@ -17,25 +18,23 @@ export default function ShippingOptions() {
   const [globalRate, setGlobalRate] = useState(600);
 
  
+  const { data: wilayasData } = useQuery({
+    queryKey: ['wilayas'],
+    queryFn: async () => {
+      const { data } = await supabase.from('Wilayas').select('id, name, price')
+      return data
+    },
+    staleTime: 60 * 60 * 1000,
+  })
+
   useEffect(() => {
-    loadWilayas();
-  }, []);
-
-  const loadWilayas = async () => {
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('Wilayas')
-      .select('*')
-      .order('id', { ascending: true });
-
-    if (error) {
-      toast.error('فشل تحميل الولايات');
-      console.error(error);
-    } else {
-      setWilayas(data || []);
+    if (wilayasData) {
+      setWilayas(wilayasData as any);
+      setLoading(false);
     }
-    setLoading(false);
-  };
+  }, [wilayasData]);
+
+  const loadWilayas = async () => {};
 
 
   const handleSaveChanges = async () => {

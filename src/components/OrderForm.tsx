@@ -8,6 +8,7 @@ import { Trash2, ShoppingBag, Truck, User, Phone, MapPin, Calculator, ChevronDow
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
 import { Badge } from '@/components/ui/badge';
+import { useQuery } from '@tanstack/react-query';
 import ReactPixel from 'react-facebook-pixel';
 
 const DELIVERY_PRICE = 500;
@@ -36,25 +37,21 @@ export default function OrderForm({ cart, onRemoveFromCart, onUpdateQuantity, on
   const [loadingWilayas, setLoadingWilayas] = useState(true);
 
   
+  const { data: wilayasData } = useQuery({
+    queryKey: ['wilayas'],
+    queryFn: async () => {
+      const { data } = await supabase.from('Wilayas').select('id, name, price')
+      return data
+    },
+    staleTime: 60 * 60 * 1000,
+  })
+
   useEffect(() => {
-    const loadWilayas = async () => {
-      const { data, error } = await supabase
-        .from('Wilayas')
-        .select('*')
-        .eq('active', true)
-        .order('name', { ascending: true });
-
-      if (error) {
-        console.error('Error loading wilayas:', error);
-        toast.error('فشل تحميل قائمة الولايات');
-      } else {
-        setWilayasList(data || []);
-      }
+    if (wilayasData) {
+      setWilayasList(wilayasData as any);
       setLoadingWilayas(false);
-    };
-
-    loadWilayas();
-  }, []);
+    }
+  }, [wilayasData]);
 
   const productsTotal = cart.reduce((sum, item) => sum + item.product.newPrice * item.quantity, 0);
   

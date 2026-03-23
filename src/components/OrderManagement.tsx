@@ -65,7 +65,10 @@ const getCustomerInfoById = (customerId) => {
 const loadOrders = async () => {
   const { data, error } = await supabase
     .from('Orders')
-    .select('*')
+    .select(`
+      *,
+      Customers (id, name, phone, isReliable)
+    `)
     .range((page - 1) * pageSize, page * pageSize - 1); 
   if (error) {
     toast.error('فشل تحميل الطلبات');

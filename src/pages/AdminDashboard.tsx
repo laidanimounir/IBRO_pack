@@ -123,36 +123,16 @@ export default function AdminDashboard() {
 
 const { data: allProducts } = await supabase
   .from('Products')
-  .select('id, name, imageUrl');
+  .select('id, imageUrl');
 
-const { data: orderItems } = await supabase
-  .from('OrderItems') 
-  .select('productId, quantity, productName');
+const { data: topProductsData, error: rpcError } = await supabase.rpc('get_top_products');
+if (rpcError) console.error("RPC Error:", rpcError);
 
-console.log('📦 Order Items:', orderItems);
-
-const productSales: Record<string, ProductSale> = {};
-
-orderItems?.forEach((item: any) => {
-  const id = item.productId;
-  if (!productSales[id]) {
-    const product = allProducts?.find((p: any) => p.id === id);
-    productSales[id] = {
-      name: product?.name || item.productName || 'منتج غير معروف',
-      image: product?.imageUrl || null,
-      quantity: 0,
-    };
-  }
-  productSales[id].quantity += item.quantity;
-});
-
-console.log('📊 Sales:', productSales);
-
-const topProductsList = Object.values(productSales)
-  .sort((a, b) => b.quantity - a.quantity)
-  .slice(0, 5);
-
-console.log('🏆 Top:', topProductsList);
+const topProductsList = topProductsData?.map((item: any) => ({
+  name: item.product_name,
+  image: allProducts?.find(p => p.id === item.product_id)?.imageUrl || null,
+  quantity: Number(item.total_sold)
+})) || [];
 
 setTopProducts(topProductsList);
 
