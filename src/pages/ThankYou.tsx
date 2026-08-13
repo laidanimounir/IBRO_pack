@@ -228,7 +228,7 @@ export default function ThankYou() {
                 <p className="font-bold text-gray-900 truncate">{order.wilaya}</p>
               </div>
             </div>
-            <p className="text-xs text-gray-600 text-center mb-3">{order.address}</p>
+            <p className="text-xs text-gray-600 text-center mb-3">{order.address || '—'}</p>
             
             
             <div className="grid grid-cols-2 gap-2 text-xs">

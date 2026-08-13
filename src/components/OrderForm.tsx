@@ -10,8 +10,8 @@ import { supabase } from '@/lib/supabase';
 import { Badge } from '@/components/ui/badge';
 import { useQuery } from '@tanstack/react-query';
 import ReactPixel from 'react-facebook-pixel';
-
-const DELIVERY_PRICE = 500;
+import { getDeliveryPrice, DEFAULT_DELIVERY_PRICE } from '@/lib/delivery';
+import { isValidDzPhone, PHONE_ERROR_MESSAGE } from '@/lib/validators';
 
 interface OrderFormProps {
   cart: Array<{ product: Product; quantity: number }>;
@@ -32,6 +32,7 @@ export default function OrderForm({ cart, onRemoveFromCart, onUpdateQuantity, on
   const [deliveryType, setDeliveryType] = useState<'home' | 'office'>('home');
   const [orderNotes, setOrderNotes] = useState('');
   const [showNotes, setShowNotes] = useState(false);
+  const [phoneError, setPhoneError] = useState('');
   
   
   const [wilayasList, setWilayasList] = useState<Array<{ id: number; name: string; home_price: number; office_price: number; active: boolean; wilaya_number: number }>>([]);
@@ -55,21 +56,21 @@ export default function OrderForm({ cart, onRemoveFromCart, onUpdateQuantity, on
   }, [wilayasData]);
 
   const productsTotal = cart.reduce((sum, item) => sum + item.product.newPrice * item.quantity, 0);
-  
- 
-  const selectedWilaya = wilayasList.find(w => w.name === wilaya)
-  const deliveryPrice = selectedWilaya
-    ? deliveryType === 'home'
-      ? selectedWilaya.home_price
-      : selectedWilaya.office_price
-    : 500;
-  const finalTotal = productsTotal + deliveryPrice;
+
+  const deliveryPrice = getDeliveryPrice(wilayasList, wilaya, deliveryType);
+  const finalTotal = deliveryPrice == null ? null : productsTotal + deliveryPrice;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!customerName?.trim() || !phone?.trim() || !address?.trim() || !wilaya?.trim()) {
-      toast.error('الرجاء ملء جميع الحقول المطلوبة بما في ذلك الولاية');
+    if (!customerName?.trim() || !phone?.trim() || !wilaya?.trim()) {
+      toast.error('الرجاء ملء جميع الحقول المطلوبة');
+      return;
+    }
+
+    if (!isValidDzPhone(phone)) {
+      setPhoneError(PHONE_ERROR_MESSAGE);
+      toast.error('رقم الهاتف غير صحيح');
       return;
     }
 
@@ -104,7 +105,7 @@ export default function OrderForm({ cart, onRemoveFromCart, onUpdateQuantity, on
           .insert({
             phone,
             name: customerName,
-            address,
+            address: address.trim(),
             totalOrders: 1,
             deliveredOrders: 0,
             isReliable: true,
@@ -128,11 +129,11 @@ export default function OrderForm({ cart, onRemoveFromCart, onUpdateQuantity, on
         .insert({
           customerId,
           phone,
-          address,
+          address: address.trim(),
           wilaya,
-          totalAmount: finalTotal,
+          totalAmount: finalTotal ?? productsTotal + DEFAULT_DELIVERY_PRICE,
           delivery_type: deliveryType,
-          delivery_price: deliveryPrice,
+          delivery_price: deliveryPrice ?? DEFAULT_DELIVERY_PRICE,
           status: 'pending',
           rejectionReason: null,
           createdAt: new Date().toISOString(),
@@ -241,12 +242,20 @@ export default function OrderForm({ cart, onRemoveFromCart, onUpdateQuantity, on
               <Truck size={14} className="text-orange-500"/> تكلفة التوصيل
               {wilaya && <span className="text-xs text-orange-600">({wilaya})</span>}
             </span>
-            <span className="font-medium">{deliveryPrice.toLocaleString()} دج</span>
+            {deliveryPrice == null ? (
+              <span className="text-xs text-orange-600 font-bold">اختر الولاية لحساب التوصيل</span>
+            ) : (
+              <span className="font-medium">{deliveryPrice.toLocaleString()} دج</span>
+            )}
           </div>
           <div className="h-px bg-gray-200 my-2 w-full group-hover:bg-orange-100 transition-colors"></div>
           <div className="flex justify-between items-center">
             <span className="font-bold text-gray-800 text-lg">الإجمالي للدفع</span>
-            <span className="text-2xl font-black text-green-600 drop-shadow-sm">{finalTotal.toLocaleString()} <small className="text-gray-500 font-normal text-sm">دج</small></span>
+            {finalTotal == null ? (
+              <span className="text-2xl font-black text-gray-300">—</span>
+            ) : (
+              <span className="text-2xl font-black text-green-600 drop-shadow-sm">{finalTotal.toLocaleString()} <small className="text-gray-500 font-normal text-sm">دج</small></span>
+            )}
           </div>
         </div>
 
@@ -276,11 +285,18 @@ export default function OrderForm({ cart, onRemoveFromCart, onUpdateQuantity, on
                   type="tel" 
                   dir="rtl" 
                   value={phone} 
-                  onChange={(e) => setPhone(e.target.value)} 
+                  onChange={(e) => { setPhone(e.target.value); if (phoneError) setPhoneError(''); }}
                   placeholder="05 XX XX XX XX" 
+                  aria-invalid={!!phoneError}
+                  aria-describedby={phoneError ? 'phone-error' : undefined}
                   className="pr-8 h-9 text-sm bg-gray-50 border-gray-200 rounded-lg" 
                 />
               </div>
+              {phoneError && (
+                <p id="phone-error" role="alert" className="text-[10px] text-red-500 font-bold mt-1">
+                  {phoneError}
+                </p>
+              )}
             </div>
           </div>
 
@@ -335,7 +351,7 @@ export default function OrderForm({ cart, onRemoveFromCart, onUpdateQuantity, on
           
           <div className="space-y-1.5">
             <Label className="text-xs font-bold text-gray-500 mr-1 flex items-center gap-1">
-              <MapPin size={12}/> العنوان (البلدية والشارع) <span className="text-red-500">*</span>
+              <MapPin size={12}/> العنوان (اختياري)
             </Label>
             <div className="relative group">
               <div className="absolute right-3 top-3.5 text-gray-400 w-5 h-5 pointer-events-none group-focus-within:text-orange-500 transition-colors">
@@ -344,10 +360,11 @@ export default function OrderForm({ cart, onRemoveFromCart, onUpdateQuantity, on
               <Textarea 
                 value={address} 
                 onChange={(e) => setAddress(e.target.value)} 
-                placeholder="مثال: بئر مراد رايس، شارع العربي بن مهيدي" 
+                placeholder="مثال: بئر مراد رايس، شارع العربي بن مهيدي (اختياري)" 
                 className="pr-10 min-h-[80px] bg-gray-50 border-gray-200 focus:bg-white focus:border-orange-500 focus:ring-4 focus:ring-orange-500/10 rounded-xl transition-all resize-none py-3 placeholder:text-gray-400"
               />
             </div>
+            <p className="text-[11px] text-gray-400 mt-1">إدخال العنوان يسرّع التوصيل ⚡ (اختياري)</p>
           </div>
 
          

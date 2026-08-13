@@ -4,6 +4,8 @@ import { supabase } from '../lib/supabase';
 import { Menu, X, ChevronRight, ShoppingBag, Home, Phone, Truck, ShieldCheck, User, MapPin, Calculator, Star, ChevronDown } from 'lucide-react';
 import { toast } from 'sonner';
 import ReactPixel from 'react-facebook-pixel';
+import { getDeliveryPrice, DEFAULT_DELIVERY_PRICE } from '../lib/delivery';
+import { isValidDzPhone, PHONE_ERROR_MESSAGE } from '../lib/validators';
 
 interface Product {
   id: string;
@@ -47,7 +49,8 @@ const EmbeddedOrderForm = ({
   
   const [wilayasList, setWilayasList] = useState<Wilaya[]>([]);
   const [loadingWilayas, setLoadingWilayas] = useState(true);
-  const [deliveryPrice, setDeliveryPrice] = useState(500);
+  const [deliveryPrice, setDeliveryPrice] = useState<number | null>(null);
+  const [phoneError, setPhoneError] = useState('');
 
 
   useEffect(() => {
@@ -81,27 +84,27 @@ const EmbeddedOrderForm = ({
 
   
   useEffect(() => {
-    const selectedWilaya = wilayasList.find(w => w.name === wilaya)
-    const newDeliveryPrice = selectedWilaya
-      ? deliveryType === 'home'
-        ? selectedWilaya.home_price
-        : selectedWilaya.office_price
-      : 500
-    setDeliveryPrice(newDeliveryPrice);
+    setDeliveryPrice(getDeliveryPrice(wilayasList, wilaya, deliveryType));
   }, [wilaya, wilayasList, deliveryType]);
 
 
   useEffect(() => {
-    const isFilled = customerName.trim() !== '' && phone.trim() !== '' && address.trim() !== '' && wilaya.trim() !== '';
+    const isFilled = customerName.trim() !== '' && phone.trim() !== '' && wilaya.trim() !== '';
     onFieldsChange?.(isFilled);
-  }, [customerName, phone, address, wilaya, onFieldsChange]);
+  }, [customerName, phone, wilaya, onFieldsChange]);
 
-  const finalTotal = (product.newPrice * quantity) + deliveryPrice;
+  const finalTotal = deliveryPrice == null ? null : (product.newPrice * quantity) + deliveryPrice;
 
 const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
-  if (!customerName?.trim() || !phone?.trim() || !address?.trim() || !wilaya?.trim()) {
+  if (!customerName?.trim() || !phone?.trim() || !wilaya?.trim()) {
     toast.error('الرجاء ملء جميع الحقول المطلوبة');
+    return;
+  }
+
+  if (!isValidDzPhone(phone)) {
+    setPhoneError(PHONE_ERROR_MESSAGE);
+    toast.error('رقم الهاتف غير صحيح');
     return;
   }
 
@@ -123,7 +126,7 @@ const handleSubmit = async (e: React.FormEvent) => {
     } else {
       const { data: newCustomer, error: custError } = await supabase
         .from('Customers')
-        .insert({ phone, name: customerName, address, totalOrders: 1, deliveredOrders: 0, warnings: 0 })
+        .insert({ phone, name: customerName, address: address.trim(), totalOrders: 1, deliveredOrders: 0, warnings: 0 })
         .select('id')
         .single();
         
@@ -136,11 +139,11 @@ const handleSubmit = async (e: React.FormEvent) => {
       .insert({
         customerId,
         phone,
-        address,
+        address: address.trim(),
         wilaya,
-        totalAmount: finalTotal,
+        totalAmount: finalTotal ?? (product.newPrice * quantity + DEFAULT_DELIVERY_PRICE),
         delivery_type: deliveryType,
-        delivery_price: deliveryPrice,
+        delivery_price: deliveryPrice ?? DEFAULT_DELIVERY_PRICE,
         status: 'pending',
         createdAt: new Date().toISOString(),
       })
@@ -201,7 +204,11 @@ const handleSubmit = async (e: React.FormEvent) => {
             <div className="flex items-center gap-2 text-xs">
               <span className="font-black text-orange-600">{product.newPrice.toLocaleString()} دج</span>
               <span className="text-gray-400">•</span>
-              <span className="text-gray-600">توصيل {deliveryPrice} دج</span>
+              {deliveryPrice == null ? (
+                <span className="text-gray-600">اختر الولاية لحساب التوصيل</span>
+              ) : (
+                <span className="text-gray-600">توصيل {deliveryPrice.toLocaleString()} دج</span>
+              )}
             </div>
             {variants.length > 0 && (
               <div className="space-y-2 mt-2">
@@ -260,12 +267,20 @@ const handleSubmit = async (e: React.FormEvent) => {
             <span className="text-gray-600">المنتج</span>
           </div>
           <div className="flex justify-between">
-            <span className="font-bold">{deliveryPrice} دج</span>
+            {deliveryPrice == null ? (
+              <span className="font-bold text-orange-600 text-[11px]">اختر الولاية لحساب التوصيل</span>
+            ) : (
+              <span className="font-bold">{deliveryPrice.toLocaleString()} دج</span>
+            )}
             <span className="text-gray-600">التوصيل</span>
           </div>
           <div className="h-px bg-gray-300 my-1"></div>
           <div className="flex justify-between items-center pt-1">
-            <span className="text-xl font-black text-green-600">{finalTotal.toLocaleString()} <small className="text-sm">دج</small></span>
+            {finalTotal == null ? (
+              <span className="text-xl font-black text-gray-300">—</span>
+            ) : (
+              <span className="text-xl font-black text-green-600">{finalTotal.toLocaleString()} <small className="text-sm">دج</small></span>
+            )}
             <span className="font-bold text-gray-900">المجموع</span>
           </div>
         </div>
@@ -283,12 +298,19 @@ const handleSubmit = async (e: React.FormEvent) => {
 
           <input 
             value={phone} 
-            onChange={e => setPhone(e.target.value)} 
+            onChange={e => { setPhone(e.target.value); if (phoneError) setPhoneError(''); }} 
             placeholder="رقم الهاتف (05XXXXXXXX)" 
             type="tel" 
+            aria-invalid={!!phoneError}
+            aria-describedby={phoneError ? 'phone-error' : undefined}
             className="w-full p-2.5 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent transition" 
             required
           />
+          {phoneError && (
+            <p id="phone-error" role="alert" className="text-xs text-red-500 font-bold">
+              {phoneError}
+            </p>
+          )}
 
         
           <div className="relative">
@@ -333,10 +355,10 @@ const handleSubmit = async (e: React.FormEvent) => {
           <textarea 
             value={address} 
             onChange={e => setAddress(e.target.value)} 
-            placeholder="العنوان (البلدية والشارع)" 
+            placeholder="العنوان (اختياري)" 
             className="w-full p-2.5 text-sm border border-gray-200 rounded-lg h-20 resize-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition" 
-            required
           />
+          <p className="text-[11px] text-gray-400 mt-1">إدخال العنوان يسرّع التوصيل ⚡ (اختياري)</p>
 
        
           <div className="flex items-center justify-around bg-gradient-to-r from-green-50 via-blue-50 to-purple-50 rounded-lg p-2 border border-gray-200 text-[10px] font-bold">
@@ -559,7 +581,7 @@ export default function ProductDetails() {
               const currentQuantity = quantityEl ? parseInt(quantityEl.textContent || '1') : 1;
               const totalEl = document.querySelector('.text-xl.font-black.text-green-600') as HTMLElement;
               const totalText = totalEl?.textContent?.replace(/[^\d]/g, '') || '';
-              const currentTotal = parseInt(totalText) || (product.newPrice * currentQuantity + 500);
+              const currentTotal = parseInt(totalText) || (product.newPrice * currentQuantity + DEFAULT_DELIVERY_PRICE);
               
               ReactPixel.track('InitiateCheckout', {
                 content_ids: [product.id],

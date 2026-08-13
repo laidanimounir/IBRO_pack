@@ -323,7 +323,7 @@ const updateCustomer = async (phone: string, orderStatus: 'delivered' | 'not_del
         <p>التاريخ: ${new Date(order.createdAt).toLocaleDateString('ar-DZ')}</p>
         <p>اسم الزبون: ${order.customerName}</p>
         <p>الهاتف: ${order.phone}</p>
-        <p>العنوان: ${order.address}</p>
+        <p>العنوان: ${order.address || '—'}</p>
       </div>
       <table>
         <thead>
@@ -816,7 +816,7 @@ useEffect(() => {
   </span>
 </TableCell>
 
-              <TableCell className="text-sm text-gray-600 truncate max-w-[150px]" title={order.address}>{order.address}</TableCell>
+              <TableCell className="text-sm text-gray-600 truncate max-w-[150px]" title={order.address || '—'}>{order.address || '—'}</TableCell>
               
 
 
@@ -910,8 +910,13 @@ useEffect(() => {
           <div className="bg-white p-3 rounded-xl border border-gray-100 text-right md:col-span-2">
             <p className="mb-1 text-xs text-gray-500 font-medium">العنوان</p>
             <p className="text-sm font-semibold text-gray-900">
-              {selectedOrder.address}
+              {selectedOrder.address || '—'}
             </p>
+            {!selectedOrder.address && (
+              <p className="mt-1 text-[10px] font-bold text-orange-700 bg-orange-50 px-2 py-1 rounded-full inline-flex items-center gap-1">
+                ⚠️ بدون عنوان — يتصل بالزبون
+              </p>
+            )}
           </div>
 
           <div className="bg-white p-3 rounded-xl border border-gray-100 text-right md:col-span-2">
